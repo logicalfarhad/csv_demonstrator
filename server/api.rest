@@ -1,0 +1,20 @@
+################
+POST http://localhost:4000/api/login
+Content-Type: application/json
+
+{
+    "loginEmail": "forhad.univdhaka@gmail.com",
+    "loginPassword": "pass123"
+}
+
+###########################
+
+POST http://localhost:4000/api/openai
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJmb3JoYWQudW5pdmRoYWthQGdtYWlsLmNvbSIsImlhdCI6MTY5MTc3NzMxNSwiZXhwIjoxNjkxNzc3Mzc1fQ.-N5Lyk0pbI3VcgEhppPtpAxUH0-e2UBaPOSXPq0WfCo
+Content-Type: application/json
+
+{
+    "query": "Your SQL query here"
+}
+
+

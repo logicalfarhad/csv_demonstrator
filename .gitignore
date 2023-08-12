@@ -1,0 +1,27 @@
+# Node.js related
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn.lock
+
+# Built output
+/build
+/dist
+
+# Editor-related files
+.vscode/
+*.code-workspace
+
+# Docker related
+docker-compose.override.yml
+.dockerignore
+client/node_modules/
+server/node_modules/
+client/build/
+server/build/
+
+# Miscellaneous
+*.log
+.DS_Store
+Thumbs.db
+

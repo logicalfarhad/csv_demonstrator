@@ -1,0 +1,47 @@
+version: '3.8'
+services:
+
+  backend:
+    container_name: backend_container
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    ports:
+      - 4000:4000
+    env_file:
+      - ./server/.env
+    depends_on:
+      - mysqldb
+      - mongodb
+
+  frontend:
+    container_name: frontend_container
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - 3000:3000
+    depends_on:
+      - backend
+
+  mysqldb:
+    container_name: demonstrator_container
+    image: mysql
+    restart: always
+    env_file: ./server/.env
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: demonstrator
+    ports:
+      - 3306:3306
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:4.4
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+volumes:
+  mongodb_data:
