@@ -4,6 +4,8 @@ const mongoose = require("mongoose");
 
 const MONGO_URI = `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
 
+//const MONGO_URI = `mongodb://localhost:27017/chatgpt`;
+
 exports.mongoConnect = () => {
     mongoose
         .connect(MONGO_URI, {
@@ -29,6 +31,18 @@ exports.dbConnect = () => {
         database: process.env.MYSQL_DATABASE,
         multipleStatements: true
     });
+
+
+    /*
+    const connection = mysql.createPool({
+        connectionLimit: 100,
+        host: 'localhost',
+        user: 'root',
+        password: 'root',
+        database: process.env.MYSQL_DATABASE,
+        multipleStatements: true
+    });
+    */
 
     // console.log(process.env.DB_HOST, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_NAME);
 

@@ -25,6 +25,7 @@ const LoginForm = () => {
         body: JSON.stringify({ loginEmail, loginPassword }),
       });
       const data = await response.json();
+
       if (response.status === 200) {
         dispatch({ type: "LOGIN", payload: data.token });
         navigate("/");

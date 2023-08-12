@@ -1,33 +1,53 @@
+require("dotenv").config()
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
-const secretKey = process.env.JWT_SECRET
 router.post("/", async (req, res) => {
     try {
         const { loginEmail, loginPassword } = req.body;
         const user = await User.findOne({ email: loginEmail });
-        console.log(user)
 
         if (!user) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
 
-       const passwordMatch = await bcrypt.compare(loginPassword, user.password);
+        const passwordMatch = await bcrypt.compare(loginPassword, user.password);
 
         if (!passwordMatch) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
+        const token = jwt.sign({ userEmail: user.email }, process.env.JWT_SECRET, { expiresIn: 300 });
 
-        // Generate a JWT token
-        const token = jwt.sign({ userEmail: user.email }, secretKey, { expiresIn: 60 });
-
-        res.status(200).json({ message: "Login successful", token });
+        return res.status(200).json({ message: "Login successful", token });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Internal server error" });
+        return res.status(500).json({ message: "Internal server error" });
     }
 });
+
+
+router.post("/check-token", (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: "Not Authorized" });
+    }
+    const token = authHeader.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({ message: "Token not provided." });
+    }
+
+    let user;
+    try {
+        user = jwt.verify(token, process.env.JWT_SECRET);
+        return res.status(200).json({ valid: true });
+    } catch (error) {
+        return res.status(401).json({ valid: false });
+    }
+})
+
+
 
 module.exports = router;

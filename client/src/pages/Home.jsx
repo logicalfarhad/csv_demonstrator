@@ -6,6 +6,7 @@ import IntroSection from "../components/IntroSection";
 import Loading from "../components/Loading";
 import NavContent from "../components/NavContent";
 import SvgComponent from "../components/SvgComponent";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -13,25 +14,23 @@ const Home = () => {
   const [chatLog, setChatLog] = useState([]);
   const [err, setErr] = useState(false);
   const [responseFromAPI, setReponseFromAPI] = useState(false);
+  const navigate = useNavigate();
 
   const chatLogRef = useRef(null);
-
   const handleSubmit = (e) => {
     e.preventDefault();
 
     if (!responseFromAPI) {
       if (inputPrompt.trim() !== "") {
-        // Set responseFromAPI to true before making the fetch request
+
         setReponseFromAPI(true);
         setChatLog([...chatLog, { chatPrompt: inputPrompt }]);
         callAPI();
-
-        // hide the keyboard in mobile devices
         e.target.querySelector("input").blur();
       }
 
       async function callAPI() {
-        var bearer = 'Bearer ' + window.localStorage.getItem("token");
+        let bearer = 'Bearer ' + window.localStorage.getItem("token");
         try {
           const response = await fetch("/api/openai", {
             method: "POST",
@@ -64,6 +63,39 @@ const Home = () => {
   };
 
   useEffect(() => {
+    let isMounted = true;
+    async function checkTokenValidity() {
+      try {
+        let bearer = 'Bearer ' + window.localStorage.getItem("token");
+        const response = await fetch("/api/login/check-token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            'Authorization': bearer
+          },
+        });
+        const data = await response.json();
+        if (!data.valid) {
+          console.warn("User session expired, please login again!");
+          // Handle token invalidity, such as logging out the user
+          navigate("/auth/login");
+        } else {
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("Error checking token validity:", error);
+        navigate("/auth/login");
+      }
+    }
+
+    if (isMounted) {
+      if (window.localStorage.getItem("token")) {
+        checkTokenValidity();
+      } else {
+        navigate("/auth/login");
+      }
+    }
+
     if (chatLogRef.current) {
       chatLogRef.current.scrollIntoView({
         behavior: "smooth",
@@ -71,8 +103,10 @@ const Home = () => {
       });
     }
 
-    return () => { };
-  }, []);
+    return () => {
+      isMounted = false;
+    };
+  }, [navigate]);
 
   return (
     <>

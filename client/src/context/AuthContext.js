@@ -11,6 +11,7 @@ export const AuthContextProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   useEffect(() => {
     if (typeof state.token === "string" && state.token.length > 0) {
+      window.localStorage.removeItem("token")
       window.localStorage.setItem("token", state.token);
     }
   }, [state.token]);
