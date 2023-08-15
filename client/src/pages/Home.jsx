@@ -7,7 +7,7 @@ import Loading from "../components/Loading";
 import NavContent from "../components/NavContent";
 import SvgComponent from "../components/SvgComponent";
 import { useNavigate } from "react-router-dom";
-
+let backend = process.env.REACT_APP_BACKEND
 const Home = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [inputPrompt, setInputPrompt] = useState("");
@@ -32,7 +32,7 @@ const Home = () => {
       async function callAPI() {
         let bearer = 'Bearer ' + window.localStorage.getItem("token");
         try {
-          const response = await fetch("/api/openai", {
+          const response = await fetch(backend + "/api/openai", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -67,7 +67,7 @@ const Home = () => {
     async function checkTokenValidity() {
       try {
         let bearer = 'Bearer ' + window.localStorage.getItem("token");
-        const response = await fetch("/api/login/check-token", {
+        const response = await fetch(backend + "/api/login/check-token", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

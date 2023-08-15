@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useState } from "react";
 import { Modal, Button, Form } from 'react-bootstrap';
+let backend = process.env.REACT_APP_BACKEND
 const SideNav = () => {
     const [showModal, setShowModal] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -16,7 +17,7 @@ const SideNav = () => {
         formData.append('csv', selectedFile);
 
         try {
-            const response = await fetch('/api/upload', {
+            const response = await fetch(backend + '/api/upload', {
                 method: 'POST',
                 body: formData
             });

@@ -142,10 +142,6 @@ router.post("/", (req, res) => {
             message: "User session expired, please login again!"
         })
     }
-
-
-
-
 });
 
 module.exports = router;

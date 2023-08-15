@@ -23,6 +23,7 @@ exports.mongoConnect = () => {
 };
 
 exports.dbConnect = () => {
+
     const connection = mysql.createPool({
         connectionLimit: 100,
         host: process.env.MYSQL_HOST,
@@ -31,6 +32,7 @@ exports.dbConnect = () => {
         database: process.env.MYSQL_DATABASE,
         multipleStatements: true
     });
+
 
 
     /*

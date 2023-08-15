@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import "./signupform.css";
 import { useNavigate } from "react-router-dom";
 import SvgComponent from "../SvgComponent";
-
+let backend = process.env.REACT_APP_BACKEND
 const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +14,7 @@ const SignupForm = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/signup", {
+      const response = await fetch(backend + "/api/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

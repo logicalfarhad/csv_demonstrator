@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-
+let backend = process.env.REACT_APP_BACKEND
 const NavLinks = ({ svg, link, text, setChatLog }) => {
   const { dispatch } = useContext(AuthContext);
 
@@ -9,8 +9,20 @@ const NavLinks = ({ svg, link, text, setChatLog }) => {
     if (text === "Clear Conversations") setChatLog([]);
     if (text === "Log out") {
       try {
+        let bearer = 'Bearer ' + window.localStorage.getItem("token");
+        const response = await fetch(backend + '/api/misc/truncate', {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': bearer
+          }
+        })
+        let data = await response.json();
+        console.log(data)
         window.localStorage.removeItem('token');
         dispatch({ type: "LOGOUT" });
+
       } catch (error) {
         console.log("error happen during sign out", error);
       }
