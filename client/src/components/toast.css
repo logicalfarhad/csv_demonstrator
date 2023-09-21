@@ -1,0 +1,28 @@
+/* Custom CSS for Bootstrap Toast Notifications */
+.toast {
+    position: absolute;
+    top: 20px; /* Adjust the top spacing as needed */
+    right: 20px; /* Adjust the right spacing as needed */
+    min-width: 250px; /* Adjust the width as needed */
+    z-index: 10000; /* Ensure the toast appears above other elements */
+  }
+  
+  /* Customize the toast colors for success and danger */
+  .alert-success {
+    background-color: #28a745; /* Green color for success */
+  }
+  
+  .alert-danger {
+    background-color: #dc3545; /* Red color for danger */
+  }
+  
+  /* Style the toast body text */
+  .toast-body {
+    color: #fff; /* Text color for the toast */
+  }
+  
+  /* Add padding and round corners to the toast */
+  .toast.show {
+    border-radius: 4px;
+    padding: 10px;
+  }

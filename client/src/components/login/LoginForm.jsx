@@ -17,7 +17,7 @@ const LoginForm = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(backend+"/api/login", {
+      const response = await fetch(backend + "/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

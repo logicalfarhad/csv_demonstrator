@@ -15,7 +15,6 @@ const SideNav = () => {
     const handleSave = async () => {
         const formData = new FormData();
         formData.append('csv', selectedFile);
-
         try {
             const response = await fetch(backend + '/api/upload', {
                 method: 'POST',

@@ -1,16 +1,24 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useState } from "react";
-import { Modal, Button, Form, Spinner, Alert, Table } from 'react-bootstrap';
-let backend = process.env.REACT_APP_BACKEND
-const CSVUpload = () => {
+import { Modal, Button, Form, Spinner, Table } from 'react-bootstrap';
+import { useDropzone } from 'react-dropzone';
+import { Save, Gear, X } from 'react-bootstrap-icons'; // Import icons from react-bootstrap-icons
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './toast.css'
 
+let backend = process.env.REACT_APP_BACKEND
+
+const CSVUpload = () => {
   const [showModal, setShowModal] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [alertMessage, setAlertMessage] = useState("");
+  const [metadataAlertMessage, setMetadataAlertMessage] = useState("");
+  const [uploadAlertMessage, setUploadAlertMessage] = useState("");
   const [tableData, setTableData] = useState([]);
-  const [alertVariant, setAlertVariant] = useState("success");
+  const [selectedFileNames, setSelectedFileNames] = useState([]);
+  const [showMetadataModal, setShowMetadataModal] = useState(false);
+  const [metadataAlertVariant, setMetadataAlertVariant] = useState("success");
+  const [uploadAlertVariant, setUploadAlertVariant] = useState("success");
   const handleClose = () => {
     setShowModal(false);
     resetForm();
@@ -21,57 +29,109 @@ const CSVUpload = () => {
     resetForm();
   };
 
+
   const resetForm = () => {
-    setSelectedFile(null);
-    setAlertMessage("");
-    setAlertVariant("success");
+    setSelectedFiles([]);
+    setMetadataAlertMessage("");
+    setMetadataAlertVariant("success");
+    setUploadAlertMessage("");
+    setUploadAlertVariant("success");
   };
 
+  // Use react-dropzone to handle file selection
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    accept: {
+      'text/csv': ['.csv']
+    },
+    onDrop: (acceptedFiles) => {
+      const newFiles = acceptedFiles.filter((file) => !selectedFileNames.includes(file.name));
+      setSelectedFiles([...selectedFiles, ...newFiles]);
+    },
+  });
 
-
-  const handleFileSelect = (event) => {
-    setSelectedFile(event.target.files[0]);
-  };
-
-
-  const handleSave = async () => {
-
-    setIsSaving(true);
+  const handleConfigureMetadata = async (file) => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append('csv', selectedFile);
+    let schema = file.name.split('.')[0]
+    setSelectedFileNames(schema)
     try {
-      const response = await fetch(backend + '/api/misc/saveMetadata', {
+      const response = await fetch(backend + '/api/misc/getSchema', {
         method: 'POST',
-        body: JSON.stringify(tableData),
+        body: JSON.stringify({ schema: schema }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': bearer
         }
-      })
-      const data = await response.json()
+      });
+      let data = await response.json();
       console.log(data)
+      const uniqueColumnNames = new Set();
+      const newData = [];
+      for (const item of data) {
+        const columnName = item.COLUMN_NAME;
+        if (!uniqueColumnNames.has(columnName) && columnName !== "id") {
+          uniqueColumnNames.add(columnName);
+          newData.push({ Column: columnName, Desc: '' });
+        }
+      }
+      setTableData(newData);
+    } catch (error) {
+      console.log(error);
+    }
+    setShowMetadataModal(true);
+  };
+
+  const handleCloseMetadataModal = () => {
+    setShowMetadataModal(false);
+  };
+
+
+  const handleRemoveFile = (index) => {
+    const newSelectedFiles = [...selectedFiles];
+    newSelectedFiles.splice(index, 1);
+    setSelectedFiles(newSelectedFiles);
+  };
+
+
+
+  const handleMetaDataSave = async () => {
+    setIsSaving(true);
+    setMetadataAlertMessage("")
+    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    try {
+      const response = await fetch(backend + '/api/misc/saveMetadata', {
+        method: 'POST',
+        body: JSON.stringify({
+          tableData: tableData,
+          tableName: selectedFileNames
+        }),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': bearer
+        }
+      });
+      const data = await response.json();
+      console.log(data);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      setAlertMessage("Column description added!");
-      setAlertVariant("success");
+      setMetadataAlertMessage("Column description added!");
+      setMetadataAlertVariant("success");
     } catch (error) {
-      setAlertMessage(error.message);
-      setAlertVariant("danger");
+      setMetadataAlertMessage(error.message);
+      setMetadataAlertVariant("danger");
     } finally {
       setIsSaving(false);
     }
   };
 
-
-  const handleUpload = async () => {
-
+  const handleUpload = async (file) => {
     setIsUploading(true);
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
     const formData = new FormData();
-    formData.append('csv', selectedFile);
+    formData.append('csv', file);
+
     try {
       const response = await fetch(backend + '/api/upload', {
         method: 'POST',
@@ -81,40 +141,17 @@ const CSVUpload = () => {
         },
       });
 
-      await response.json()
+      await response.json();
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      try {
-        const response = await fetch(backend + '/api/misc/getSchema', {
-          method: 'GET',
-          headers: {
-            'Authorization': bearer
-          },
-        });
-        let data = await response.json()
-        const uniqueColumnNames = new Set();
-        const newData = [];
-        for (const item of data) {
-          const columnName = item.COLUMN_NAME;
-
-          if (!uniqueColumnNames.has(columnName)) {
-            uniqueColumnNames.add(columnName);
-            newData.push({ Column: columnName, Desc: '' });
-          }
-        }
-        setTableData(newData);
-      } catch (error) {
-          console.log(error)
-      }
-      setAlertMessage("CSV file uploaded successfully!");
-      setAlertVariant("success");
+      setUploadAlertMessage("CSV files uploaded successfully!");
+      setUploadAlertVariant("success");
     } catch (error) {
-      setAlertMessage(error);
-      setAlertVariant("danger");
+      setUploadAlertMessage(error);
+      setUploadAlertVariant("danger");
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
   };
 
@@ -133,11 +170,74 @@ const CSVUpload = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            <Form.Group controlId="formFile">
-              <Form.Label>Select a CSV file:</Form.Label>
-              <Form.Control type="file" accept=".csv" onChange={handleFileSelect} />
-            </Form.Group>
+            {/* Use react-dropzone here */}
+            <div {...getRootProps()} style={dropzoneStyles}>
+              <input {...getInputProps()} />
+              {isDragActive ? (
+                <p>Drop the CSV file(s) here...</p>
+              ) : (
+                <p>Drag 'n' drop CSV file(s) here, or click to select</p>
+              )}
+            </div>
+            {selectedFiles.length > 0 && (
+              <div>
+                <h5>Selected Files:</h5>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>File Name</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedFiles.map((file, index) => (
+                      <tr key={index}>
+                        <td>{file.name}</td>
+                        <td>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleUpload(file)}
+                          >
+                            <Save size={16} />
+                          </Button>
+                          <Button
+                            variant="info"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleConfigureMetadata(file)}
+                          >
+                            <Gear size={16} />
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleRemoveFile(index)}
+                          >
+                            <X size={16} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            )}
           </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={showMetadataModal} onHide={handleCloseMetadataModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Metadata Configuration</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
           {tableData.length > 0 && (
             <Table striped bordered hover>
               <thead>
@@ -177,25 +277,54 @@ const CSVUpload = () => {
               </tbody>
             </Table>
           )}
-
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={handleClose}>
+          <Button variant="secondary" onClick={handleCloseMetadataModal}>
             Close
           </Button>
-          <Button variant="primary" onClick={handleSave} disabled={isSaving || isUploading}>
+          <Button variant="primary" onClick={handleMetaDataSave} disabled={isSaving || isUploading}>
             {isSaving ? <Spinner animation="border" size="sm" /> : "Save"}
           </Button>
-          <Button variant="info" onClick={handleUpload} disabled={isSaving || isUploading}>
-            {isUploading ? <Spinner animation="border" size="sm" /> : "Upload"}
-          </Button>
         </Modal.Footer>
-        <Alert variant={alertVariant} show={alertMessage !== ""} onClose={() => setAlertMessage("")} dismissible className="mt-3">
-          {alertMessage}
-        </Alert>
       </Modal>
+
+      {/* Bootstrap Notification for Upload Success */}
+      {uploadAlertMessage && (
+        <div
+          className={`toast show alert-${uploadAlertVariant}`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div className="toast-body">
+            {uploadAlertMessage}
+          </div>
+        </div>
+      )}
+
+      {/* Bootstrap Notification for Metadata Save Success */}
+      {metadataAlertMessage && (
+        <div
+          className={`toast show alert-${metadataAlertVariant}`}
+          role="alert"
+          aria-live="assertive"
+          aria-atomic="true"
+        >
+          <div className="toast-body">
+            {metadataAlertMessage}
+          </div>
+        </div>
+      )}
     </>
   );
+};
+
+const dropzoneStyles = {
+  border: '2px dashed #cccccc',
+  borderRadius: '4px',
+  padding: '20px',
+  textAlign: 'center',
+  cursor: 'pointer',
 };
 
 export default CSVUpload;

@@ -15,6 +15,11 @@ router.use(fileUpload())
 
 let connection = db.dbConnect()
 
+const escape = (value) => {
+    // Escape the value to prevent SQL injection
+    return connection.escape(value);
+};
+
 router.post("/", (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -24,15 +29,17 @@ router.post("/", (req, res) => {
     const token = authHeader.split(" ")[1];
     try {
         jwt.verify(token, process.env.JWT_SECRET);
-        const tableName = 'csv_demonstrator';
+        let tableName;
         try {
             // Check if file was uploaded
             if (!req.files || Object.keys(req.files).length === 0) {
                 return res.status(400).send('No files were uploaded.');
             }
+            //    console.log(req.files)
 
             // Get the uploaded file
             const csvFile = req.files.csv;
+            tableName = csvFile.name.split('.')[0];
             let uploadPath = path.join(__dirname, '..', 'uploadedfile', csvFile.name);
 
             csvFile.mv(uploadPath, async function (err) {
@@ -107,9 +114,9 @@ router.post("/", (req, res) => {
                                 let values = '(';
                                 Object.values(row).forEach((value) => {
                                     if (!isNaN(value)) {
-                                        values += `${value}, `;
+                                        values += `${escape(value)}, `;
                                     } else {
-                                        values += `'${value}', `;
+                                        values += `${escape(value)}, `;
                                     }
                                 });
                                 values = values.slice(0, -2); // Remove the last comma and space
@@ -117,8 +124,10 @@ router.post("/", (req, res) => {
                                 insertStatement += values;
                             })
                             .on('end', async () => {
-                                insertStatement = insertStatement.slice(0, -5); // Remove the last comma and newline
+                                insertStatement = insertStatement.slice(0, -2); // Remove the last comma and newline
                                 insertStatement += ';';
+                                //  console.log(tableSchema)
+                                //  console.log(insertStatement)
                                 await connection.query(tableSchema);
                                 await connection.query(insertStatement);
 

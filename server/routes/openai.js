@@ -11,6 +11,11 @@ router.post('/', async (req, res) => {
         const { query } = req.body;
         const { authorization: authHeader } = req.headers;
 
+
+        console.log(query)
+
+        console.log(authHeader)
+
         if (!authHeader) {
             return res.status(401).json({ error: 'Not Authorized' });
         }
@@ -21,10 +26,10 @@ router.post('/', async (req, res) => {
         try {
             user = jwt.verify(token, JWT_SECRET);
             if (user.userEmail) {
-                let sqlQuery = `select * from csv_demonstrator;`;
+                let sqlQuery = `SELECT COUNT(*) as tableCount FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE}';`;
                 let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
                 [rows] = await connection.query(sqlQuery);
-                if (rows.length == 0) {
+                if (rows[0].tableCount == 0) {
                     return res.status(200).json({
                         queryResult: false,
                         query: 'Please upload a CSV file first.'
@@ -38,7 +43,7 @@ router.post('/', async (req, res) => {
             });
         }
 
-        let result = await chain.call({ input: query + '\nPlease only return the valid sql part of the answer and remember the sql table name.\n' });
+        let result = await chain.call({ input: query + '\nPlease only return the valid sql part of the answer and remember the sql table name. Please do not use Metadata tables for sql query.\n' });
         console.log(result)
         if (result.response) {
             let sqlQuery = result.response.trim();

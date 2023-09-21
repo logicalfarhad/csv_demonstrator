@@ -3,23 +3,23 @@ POST http://localhost:4000/api/login
 Content-Type: application/json
 
 {
-    "loginEmail": "forhad.univdhaka@gmail.com",
+    "loginEmail": "farhad.ali@iais.fraunhofer.de",
     "loginPassword": "pass123"
 }
 
 ###########################
 
 POST http://localhost:4000/api/openai
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJmb3JoYWQudW5pdmRoYWthQGdtYWlsLmNvbSIsImlhdCI6MTY5MTc3NzMxNSwiZXhwIjoxNjkxNzc3Mzc1fQ.-N5Lyk0pbI3VcgEhppPtpAxUH0-e2UBaPOSXPq0WfCo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJmYXJoYWQuYWxpQGlhaXMuZnJhdW5ob2Zlci5kZSIsImlhdCI6MTY5NTA2ODA4MywiZXhwIjoxNjk1MDY5NTgzfQ.4DBwaoUujfSJeTFrKL3SJFRjM_X_pY_XJAAZSj6FC_k
 Content-Type: application/json
 
 {
-    "query": "Your SQL query here"
+    "query": "Please give me the name of the organization which has less than 500 employees"
 }
 
 ##############################
 
 
 POST http://localhost:4000/api/login/check-token
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJmb3JoYWQudW5pdmRoYWthQGdtYWlsLmNvbSIsImlhdCI6MTY5MTg3ODU0OCwiZXhwIjoxNjkxODc4ODQ4fQ.XG1CrIv7QaeWL0dKAoGdBJi5ibm4FlD8l8C93Lorbks
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJmYXJoYWQuYWxpQGlhaXMuZnJhdW5ob2Zlci5kZSIsImlhdCI6MTY5NTA2ODA4MywiZXhwIjoxNjk1MDY5NTgzfQ.4DBwaoUujfSJeTFrKL3SJFRjM_X_pY_XJAAZSj6FC_k
 Content-Type: application/json

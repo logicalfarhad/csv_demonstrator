@@ -320,7 +320,7 @@ nav svg {
   overflow-y: hidden;
 }
 
-form button {
+.inputPromptWrapper button {
   background: rgb(65, 65, 78);
   border: none;
   position: absolute;
