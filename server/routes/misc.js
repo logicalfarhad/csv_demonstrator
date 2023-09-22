@@ -7,6 +7,7 @@ const createChain = require('../config/conversationChain');
 
 const connection = dbConnect();
 const chain = createChain();
+const { OpenAI } = require("langchain/llms/openai");
 
 // Middleware to check authentication token
 const authenticateToken = (req, res, next) => {
@@ -90,14 +91,54 @@ router.post('/truncate', authenticateToken, async (req, res) => {
 
 router.post('/getSchema', authenticateToken, async (req, res) => {
     let schema = req.body.schema;
+    console.log(schema);
     try {
-        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema}"`;
-        const [rows] = await connection.query(columnQuery);
-        return res.status(200).json(rows);
+      const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema}"`;
+      console.log(columnQuery);
+      const [rows] = await connection.query(columnQuery);
+      // console.log(rows);
+  
+      const [data] = await connection.query(`Select * from ${schema} LIMIT 3`)
+    //   console.log(data);
+      const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
+    //   console.log(formattedStrings)
+      const columnNames = rows.map((item) => item.COLUMN_NAME).join(",");
+      // console.log(columnNames);
+      const prompt = `Please return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}`;
+  
+      const llm = new OpenAI({
+        model: "text-davinci-003",
+        temperature: 0,
+        max_tokens: 150,
+        top_p: 1.0,
+        frequency_penalty: 0.0,
+        presence_penalty: 0.0,
+      });
+      let descriptions = await llm.call(prompt);
+      descriptions = descriptions.trim().split("\n");
+      // console.log(descriptions);
+  
+      for (let i = 0; i < rows.length; i++) {
+        rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
+      }
+  
+      // console.log(rows);
+  
+      return res.status(200).json(rows);
     } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'An error occurred' });
+      console.error(error);
+      return res.status(500).json({ error: 'An error occurred' });
     }
-});
+  });
+
+
+  function flattenObjectValues(obj) {
+    return Object.values(obj).map(val => {
+      if (typeof val === 'object' && !Array.isArray(val)) {
+        return flattenObjectValues(val);
+      }
+      return val;
+    }).join(',');
+  }
 
 module.exports = router;
