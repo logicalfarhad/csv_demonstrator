@@ -6,15 +6,12 @@ const createChain = require('../config/conversationChain');
 const chain = createChain()
 const { JWT_SECRET, MYSQL_DATABASE } = process.env;
 const connection = dbConnect();
+
+
 router.post('/', async (req, res) => {
     try {
         const { query } = req.body;
         const { authorization: authHeader } = req.headers;
-
-
-        console.log(query)
-
-        console.log(authHeader)
 
         if (!authHeader) {
             return res.status(401).json({ error: 'Not Authorized' });
@@ -43,10 +40,21 @@ router.post('/', async (req, res) => {
             });
         }
 
-        let result = await chain.call({ input: query + '\nPlease only return the valid sql part of the answer and remember the sql table name. Please do not use Metadata tables for sql query.\n' });
+        let result = await chain.call({ input: query + '\nPlease only return the valid sql part of the answer and remember the actual sql table names. Please do not use Metadata tables for sql query.\n' });
         console.log(result)
+
+        /*
+        let sqlQuery = `SELECT * FROM Employee WHERE Salary > 50000;`;
+        let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+        [rows] = await connection.query(sqlQuery);
+        return res.status(200).json({
+            queryResult: rows,
+            query: sqlQuery
+        });*/
+
         if (result.response) {
             let sqlQuery = result.response.trim();
+            console.log(sqlQuery)
             let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
             [rows] = await connection.query(sqlQuery);
             res.status(200).json({

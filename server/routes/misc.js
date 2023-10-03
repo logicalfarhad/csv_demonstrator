@@ -59,7 +59,6 @@ router.post('/saveMetadata', authenticateToken, async (req, res) => {
         const result = await chain.call({ input: descriptionString });
         console.log(result);
         return res.status(200).json({ response: result.response });
-
         // return res.status(200).json({ success: true })
 
     } catch (error) {
@@ -70,23 +69,26 @@ router.post('/saveMetadata', authenticateToken, async (req, res) => {
 
 router.post('/truncate', authenticateToken, async (req, res) => {
     try {
+
+        await connection.query('SET FOREIGN_KEY_CHECKS=0');
         let sql = `SELECT CONCAT('DROP TABLE ', TABLE_NAME, ';')
-        FROM INFORMATION_SCHEMA.tables
-        WHERE TABLE_SCHEMA = '${process.env.MYSQL_DATABASE}';`;
+            FROM INFORMATION_SCHEMA.tables
+            WHERE TABLE_SCHEMA = '${process.env.MYSQL_DATABASE}';`;
+
         let [rows] = await connection.query(sql);
         for (const item of rows) {
             for (const sql of Object.values(item)) {
                 await connection.query(`use ${process.env.MYSQL_DATABASE};${sql}`);
             }
         }
-        console.log('Table truncated');
+        await connection.query('SET FOREIGN_KEY_CHECKS=1');
         return res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ success: false });
     }
-});
 
+});
 
 router.post('/getSchema', authenticateToken, async (req, res) => {
     let schema = req.body.schema;

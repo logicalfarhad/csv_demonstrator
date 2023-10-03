@@ -1,0 +1,22 @@
+CustomerID, Product, Email, Name, Address
+C123, Laptop, customer1@email.com, Sarah, 123 Main St
+C124, Smartphone, customer2@email.com, David, 456 Elm St
+C125, Tablet, customer3@email.com, Emily, 789 Oak St
+C126, TV, customer4@email.com, John, 101 Pine St
+C127, Camera, customer5@email.com, Michael, 222 Birch St
+C128, Headphones, customer6@email.com, Ava, 345 Cedar St
+C129, Laptop, customer7@email.com, Liam, 678 Elm St
+C130, Tablet, customer8@email.com, Mia, 890 Oak St
+C131, Smartphone, customer9@email.com, Ethan, 456 Birch St
+C132, TV, customer10@email.com, Sophia, 123 Pine St
+C133, Camera, customer11@email.com, Noah, 222 Cedar St
+C134, Headphones, customer12@email.com, Isabella, 345 Elm St
+C135, Laptop, customer13@email.com, James, 678 Oak St
+C136, Tablet, customer14@email.com, Emma, 890 Cedar St
+C137, Smartphone, customer15@email.com, Benjamin, 456 Pine St
+C138, TV, customer16@email.com, Olivia, 123 Birch St
+C139, Camera, customer17@email.com, William, 222 Elm St
+C140, Headphones, customer18@email.com, Sophia, 345 Oak St
+C141, Laptop, customer19@email.com, Mia, 678 Cedar St
+C142, Tablet, customer20@email.com, Liam, 890 Pine St
+

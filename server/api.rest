@@ -23,3 +23,13 @@ Content-Type: application/json
 POST http://localhost:4000/api/login/check-token
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJmYXJoYWQuYWxpQGlhaXMuZnJhdW5ob2Zlci5kZSIsImlhdCI6MTY5NTA2ODA4MywiZXhwIjoxNjk1MDY5NTgzfQ.4DBwaoUujfSJeTFrKL3SJFRjM_X_pY_XJAAZSj6FC_k
 Content-Type: application/json
+
+
+#################
+
+GET http://localhost:4000/api/upload/checkschema
+
+#########################
+
+GET http://localhost:4000/api/upload/gettables
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyRW1haWwiOiJmYXJoYWQuYWxpQGlhaXMuZnJhdW5ob2Zlci5kZSIsImlhdCI6MTY5NjI0MzA1OCwiZXhwIjoxNjk2MjQ0NTU4fQ.jQn_GSreGT1Ej1ekXQYMxkcs-sKxV2y6zE16lbdUCz8

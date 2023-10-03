@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Spinner, Table } from 'react-bootstrap';
 import { useDropzone } from 'react-dropzone';
-import { Save, Gear, X } from 'react-bootstrap-icons'; // Import icons from react-bootstrap-icons
+import { Gear, X } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './toast.css'
+//import './toast.css'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 let backend = process.env.REACT_APP_BACKEND
 
@@ -12,6 +14,7 @@ const CSVUpload = () => {
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [showTableModal, setShowTableModal] = useState(false);
   const [metadataAlertMessage, setMetadataAlertMessage] = useState("");
   const [uploadAlertMessage, setUploadAlertMessage] = useState("");
   const [tableData, setTableData] = useState([]);
@@ -19,6 +22,7 @@ const CSVUpload = () => {
   const [showMetadataModal, setShowMetadataModal] = useState(false);
   const [metadataAlertVariant, setMetadataAlertVariant] = useState("success");
   const [uploadAlertVariant, setUploadAlertVariant] = useState("success");
+  const [columnNameTable, setcolumnNameTable] = useState([])
   const handleClose = () => {
     setShowModal(false);
     resetForm();
@@ -27,6 +31,105 @@ const CSVUpload = () => {
   const handleShow = () => {
     setShowModal(true);
     resetForm();
+  };
+
+  // Function to show the table modal
+  const handleShowTableModal = () => {
+    setShowTableModal(true);
+  };
+
+  const renderTableModalFooter = () => {
+    if (columnNameTable.length > 0) {
+      return (
+        <>
+          <Button variant="primary" onClick={handleJoinModal}>
+            Yes
+          </Button>
+          <Button variant="secondary" onClick={handleCloseTableModal}>
+            No
+          </Button>
+        </>
+      );
+    } else {
+      return (
+        <Button variant="secondary" onClick={handleCloseTableModal}>
+          Close
+        </Button>
+      );
+    }
+  };
+
+  // Function to hide the table modal
+  const handleCloseTableModal = async () => {
+    let table_names = new Set()
+
+    for (const item of columnNameTable) {
+      item.tableNames.forEach(table_names.add, table_names);
+    }
+    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    try {
+      const response = await fetch(backend + '/api/upload/jointables', {
+        method: 'POST',
+        body: JSON.stringify({ tables: [...table_names], shouldJoin: false }),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': bearer
+        }
+      });
+      await response.json();
+      setShowTableModal(false);
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+
+  // Use useEffect to open the modal when columnNameTable is set
+  useEffect(() => {
+    if (columnNameTable.length > 0) {
+      handleShowTableModal();
+    }
+  }, [columnNameTable]);
+
+
+  const handleJoinModal = async () => {
+    let table_names = new Set();
+
+    for (const item of columnNameTable) {
+      item.tableNames.forEach(table_names.add, table_names);
+    }
+
+    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+
+    try {
+      const response = await fetch(backend + '/api/upload/jointables', {
+        method: 'POST',
+        body: JSON.stringify({ tables: [...table_names], shouldJoin: true }),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': bearer
+        }
+      });
+
+      if (response.ok) {
+        await response.json();
+        setShowTableModal(false);
+        toast.success('Tables joined successfully!', {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error('Error joining tables!', {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error('Error joining tables!', {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+    }
   };
 
 
@@ -38,16 +141,67 @@ const CSVUpload = () => {
     setUploadAlertVariant("success");
   };
 
-  // Use react-dropzone to handle file selection
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: {
       'text/csv': ['.csv']
     },
-    onDrop: (acceptedFiles) => {
+    onDrop: async (acceptedFiles) => {
       const newFiles = acceptedFiles.filter((file) => !selectedFileNames.includes(file.name));
       setSelectedFiles([...selectedFiles, ...newFiles]);
+
+      try {
+
+        await Promise.all(newFiles.map(file => handleUpload(file)));
+
+        // Once all files are uploaded, get column names
+        let colmNames = await getColumnName();
+        setcolumnNameTable(colmNames);
+
+        if (colmNames.length === 0) {
+          let table_names = new Set()
+          let bearer = 'Bearer ' + window.localStorage.getItem("token");
+          try {
+            const response = await fetch(backend + '/api/upload/jointables', {
+              method: 'POST',
+              body: JSON.stringify({ tables: [...table_names], shouldJoin: false }),
+              headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Authorization': bearer
+              }
+            });
+            await response.json();
+            setShowTableModal(false);
+          } catch (error) {
+            console.log(error)
+          }
+        }
+
+      } catch (error) {
+        console.error(error);
+      }
     },
   });
+
+
+  const getColumnName = async () => {
+    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    try {
+      const response = await fetch(backend + '/api/upload/gettables', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': bearer
+        }
+      });
+      let data = await response.json();
+      return data;
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
 
   const handleConfigureMetadata = async (file) => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
@@ -64,7 +218,6 @@ const CSVUpload = () => {
         }
       });
       let data = await response.json();
-      console.log(data)
       const uniqueColumnNames = new Set();
       const newData = [];
       for (const item of data) {
@@ -96,8 +249,9 @@ const CSVUpload = () => {
 
   const handleMetaDataSave = async () => {
     setIsSaving(true);
-    setMetadataAlertMessage("")
+    setMetadataAlertMessage("");
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    
     try {
       const response = await fetch(backend + '/api/misc/saveMetadata', {
         method: 'POST',
@@ -111,16 +265,21 @@ const CSVUpload = () => {
           'Authorization': bearer
         }
       });
+
       const data = await response.json();
-      console.log(data);
-      if (!response.ok) {
+      console.log(data)
+      if (response.ok) {
+        toast.success('Column description added!', {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      setMetadataAlertMessage("Column description added!");
-      setMetadataAlertVariant("success");
     } catch (error) {
-      setMetadataAlertMessage(error.message);
-      setMetadataAlertVariant("danger");
+      toast.error('Error saving metadata!', {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      console.error(error);
     } finally {
       setIsSaving(false);
     }
@@ -141,15 +300,18 @@ const CSVUpload = () => {
         },
       });
 
-      await response.json();
-      if (!response.ok) {
+      if (response.ok) {
+        toast.success('CSV files uploaded successfully!', {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      setUploadAlertMessage("CSV files uploaded successfully!");
-      setUploadAlertVariant("success");
     } catch (error) {
-      setUploadAlertMessage(error);
-      setUploadAlertVariant("danger");
+      toast.error('Error uploading CSV files!', {
+        position: toast.POSITION.TOP_RIGHT,
+      });
+      console.error(error);
     } finally {
       setIsUploading(false);
     }
@@ -195,14 +357,6 @@ const CSVUpload = () => {
                         <td>{file.name}</td>
                         <td>
                           <Button
-                            variant="primary"
-                            size="sm"
-                            className="me-2"
-                            onClick={() => handleUpload(file)}
-                          >
-                            <Save size={16} />
-                          </Button>
-                          <Button
                             variant="info"
                             size="sm"
                             className="me-2"
@@ -227,6 +381,9 @@ const CSVUpload = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
+          <Button variant="primary" onClick={handleShowTableModal}>
+            Check
+          </Button>
           <Button variant="secondary" onClick={handleClose}>
             Close
           </Button>
@@ -288,6 +445,38 @@ const CSVUpload = () => {
         </Modal.Footer>
       </Modal>
 
+
+      <Modal show={showTableModal} onHide={handleCloseTableModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Do you want to join these tables?</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {columnNameTable.length > 0 ? (
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>Common Column</th>
+                  <th>Table</th>
+                </tr>
+              </thead>
+              <tbody>
+                {columnNameTable.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.columnName}</td>
+                    <td>{item.tableNames.join(", ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p>There are no common column names.</p>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          {renderTableModalFooter()}
+        </Modal.Footer>
+      </Modal>
+
       {/* Bootstrap Notification for Upload Success */}
       {uploadAlertMessage && (
         <div
@@ -315,6 +504,7 @@ const CSVUpload = () => {
           </div>
         </div>
       )}
+      <ToastContainer autoClose={500} />
     </>
   );
 };

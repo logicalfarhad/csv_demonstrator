@@ -3,47 +3,76 @@ services:
 
   backend:
     container_name: backend_container
+    restart: always
     build:
       context: ./server
       dockerfile: Dockerfile
     ports:
-      - 4000:4000
+      - 5555:5555
+    networks:
+      - app
     env_file:
       - ./server/.env
     depends_on:
-      - mysqldb
       - mongodb
+      - mysqldb
+      
 
   frontend:
     container_name: frontend_container
+    restart: always
+    networks:
+      - app
     build:
       context: ./client
       dockerfile: Dockerfile
     env_file:
       - ./client/.env
     ports:
-      - 3000:3000
+      - 5050:5050
     depends_on:
       - backend
 
   mysqldb:
     container_name: mysqldb_container
-    image: mysql
+    image: mysql:8.0
     restart: always
+    networks:
+      - app
     env_file: ./server/.env
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: demonstrator
     ports:
-      - 3306:3306
+      - 3307:3306
+
+  nginx:
+    container_name: nginx_container
+    build:
+      context: ./nginx
+    networks:
+      - app
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
 
   mongodb:
     container_name: mongodb_container
-    image: mongo:4.4
+    image: mongo:jammy
+    restart: always
+    networks:
+      - app
     ports:
-      - "27017:27017"
+      - "27018:27017"
     volumes:
       - mongodb_data:/data/db
 
 volumes:
   mongodb_data:
+
+
+networks:
+  app:
+    driver: bridge

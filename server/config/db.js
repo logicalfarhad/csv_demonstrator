@@ -2,9 +2,8 @@ require('dotenv').config();
 const mysql = require('mysql2/promise');
 const mongoose = require("mongoose");
 
-const MONGO_URI = `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
-
-//const MONGO_URI = `mongodb://localhost:27017/chatgpt`;
+const MONGO_URI = `mongodb://${process.env.MONGO_HOST}/${process.env.MONGO_DATABASE}`;
+//const MONGO_URI = `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
 
 exports.mongoConnect = () => {
     mongoose

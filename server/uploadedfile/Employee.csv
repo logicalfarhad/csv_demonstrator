@@ -1,0 +1,23 @@
+EmployeeID, Age, Department, Name, Salary, City
+101, 25, Marketing, John, 60000, New York
+102, 28, Sales, Emily, 55000, Los Angeles
+103, 32, HR, Michael, 62000, Chicago
+104, 27, IT, Sarah, 58000, San Francisco
+105, 29, Finance, David, 63000, Boston
+106, 31, Marketing, Olivia, 61000, Seattle
+107, 26, Sales, Ethan, 56000, Miami
+108, 30, HR, Sophia, 61000, Denver
+109, 29, IT, Liam, 59000, Austin
+110, 33, Finance, Mia, 64000, Atlanta
+111, 26, Marketing, Ava, 60500, Phoenix
+112, 29, Sales, Noah, 57000, Philadelphia
+113, 34, HR, Isabella, 62500, Dallas
+114, 28, IT, James, 58500, Houston
+115, 31, Finance, Emma, 63500, San Diego
+116, 27, Marketing, William, 60200, Detroit
+117, 30, Sales, Sophia, 55500, Minneapolis
+118, 35, HR, Benjamin, 63000, Tampa
+119, 25, IT, Olivia, 59200, Orlando
+120, 32, Finance, Michael, 64500, Charlotte
+
+

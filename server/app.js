@@ -11,7 +11,7 @@ const miscRouter = require('./routes/misc')
 const db = require("./config/db");
 
 const app = express();
-const port = 4000;
+const port = 5555;
 
 // Connect to the database
 db.mongoConnect();

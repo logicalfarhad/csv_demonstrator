@@ -1,0 +1,39 @@
+id,location,name,date_of_birth,salary
+1,London,Alice,1998-01-01,100000
+2,New York City,Bob,1993-02-02,120000
+3,Tokyo,Carol,1988-03-03,140000
+4,Sydney,David,1983-04-04,160000
+5,Paris,Eve,1978-05-05,180000
+6,Berlin,Frank,1973-06-06,200000
+7,Rome,Grace,1968-07-07,220000
+8,Madrid,Henry,1963-08-08,240000
+9,Moscow,Isabella,1958-09-09,260000
+10,Seoul,James,1953-10-10,280000
+11,Beijing,Kate,1948-11-11,300000
+12,Cairo,Leo,1943-12-12,320000
+13,Delhi,Mary,1938-01-13,340000
+14,Lagos,Noah,1933-02-14,360000
+15,Sao Paulo,Olivia,1928-03-15,380000
+16,Buenos Aires,Peter,1923-04-16,400000
+17,Toronto,Quinn,1998-01-17,100000
+18,Mexico City,Rachel,1993-02-18,120000
+19,Lima,Samuel,1988-03-19,140000
+20,Bogota,Thomas,1983-04-20,160000
+21,Santiago,Umaima,1978-05-21,180000
+22,Warsaw,Victor,1973-06-22,200000
+23,Milan,William,1968-07-23,220000
+24,Barcelona,Xavi,1963-08-24,240000
+25,Kiev,Yaroslav,1958-09-25,260000
+26,Dubai,Zara,1953-10-26,280000
+27,Bangkok,Anna,1948-11-27,300000
+28,Riyadh,Bruno,1943-12-28,320000
+29,Osaka,Camila,1938-01-29,340000
+30,Jakarta,Daniel,1933-02-30,360000
+31,Manila,Emma,1928-03-31,380000
+32,Ho Chi Minh City,Finn,1923-04-32,400000
+33,Tehran,Gabriel,1998-01-33,100000
+34,Istanbul,Hannah,1993-02-34,120000
+35,Baghdad,Isabella,1988-03-35,140000
+36,Lima,Jack,1983-04-36,160000
+37,Kuala Lumpur,Kate,1978-05-37,180000
+38,Cairo,Leo,1973-06-38,200000
