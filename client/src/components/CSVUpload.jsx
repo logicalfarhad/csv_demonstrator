@@ -222,9 +222,10 @@ const CSVUpload = () => {
       const newData = [];
       for (const item of data) {
         const columnName = item.COLUMN_NAME;
+        const Desc = item.description;
         if (!uniqueColumnNames.has(columnName) && columnName !== "id") {
           uniqueColumnNames.add(columnName);
-          newData.push({ Column: columnName, Desc: '' });
+          newData.push({ Column: columnName, Desc: Desc });
         }
       }
       setTableData(newData);
