@@ -9,7 +9,6 @@ const chain = createChain()
 const jwt = require("jsonwebtoken");
 const path = require("path")
 const fileUpload = require('express-fileupload');
-const { json } = require("body-parser");
 router.use(fileUpload())
 let table_list = [];
 let backup_table = [];
@@ -89,18 +88,43 @@ const authenticateToken = (req, res, next) => {
         });
     }
 };
+const checkMetadataTableExists = (tableNames) => {
+    const result = [];
 
-router.get("/checkschema", async (req, res) => {
-    await connection.query(`USE ${MYSQL_DATABASE};`)
-    for (const name of table_list) {
-        let query = `describe ${name};`
-        let [rows] = await connection.query(query)
-        console.log("Schema of " + name + " table: \n")
-        console.log(JSON.stringify(rows))
+    for (const tableName of tableNames) {
+        // Check if the table name does not start with "metadata_"
+        if (!tableName.startsWith("metadata_")) {
+            const metadataTableName = `metadata_${tableName}`;
+
+            // Check if the metadata table exists
+            const metadataTableExists = tableNames.includes(metadataTableName);
+
+            // Create an object with the table name and metadata existence status
+            const tableInfo = {
+                table_name: tableName,
+                exists: metadataTableExists,
+            };
+
+            result.push(tableInfo);
+        }
     }
-    res.json(true)
-})
 
+    return result;
+}
+router.post("/checkmetadata", async (req, res) => {
+    try {
+        await connection.query(`USE ${MYSQL_DATABASE};`);
+        let query = 'SHOW TABLES;';
+        let [rows] = await connection.query(query);
+
+        let result = checkMetadataTableExists(rows.map(item => item.Tables_in_demonstrator));
+        console.log(result)
+        return res.status(200).json(result);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, error: "Internal Server Error" });
+    }
+});
 
 router.post("/jointables", async (req, res) => {
     let tableNames = req.body.tables;
@@ -118,6 +142,7 @@ router.post("/jointables", async (req, res) => {
                 const foreignKeyName = `${referencedTableName}ID`;
 
                 const sql = generateForeignKeySQL(tableName, foreignKeyName, referencedTableName, 'id');
+                // console.log(sql)
                 await connection.query(`USE ${MYSQL_DATABASE};`);
                 await connection.query(sql);
             }
@@ -130,9 +155,7 @@ router.post("/jointables", async (req, res) => {
         });
 
         const schemaResults = await Promise.all(schemaPromises);
-        const schemaString = schemaResults.join(""); // Combine the results into a single string
-        //console.log(schemaString)
-        // Perform some operation with schemaString
+        const schemaString = schemaResults.join("");
         console.log(schemaString)
         const res1 = await chain.call({ input: schemaString });
         console.log(res1);
@@ -173,7 +196,7 @@ router.post("/", authenticateToken, async (req, res) => {
 
 
         const csvFile = req.files.csv;
-        tableName = csvFile.name.split('.')[0];
+        tableName = csvFile.name.split('.')[0].toLowerCase();
         table_list.push(tableName)
         let uploadPath = path.join(__dirname, '..', 'uploadedfile', csvFile.name);
 
@@ -265,10 +288,9 @@ router.post("/", authenticateToken, async (req, res) => {
                             insertStatement += ';';
                             await connection.query(tableSchema);
                             //  console.log(tableSchema);
+                            //  console.log(insertStatement);
                             await connection.query(insertStatement);
                             try {
-                                //  const res1 = await chain.call({ input: tableSchema });
-                                //     console.log(res1)
                                 return res.send(true);
                             } catch (error) {
                                 return res.send(error)

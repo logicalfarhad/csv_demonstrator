@@ -3,11 +3,10 @@ import { Modal, Button, Form, Spinner, Table } from 'react-bootstrap';
 import { useDropzone } from 'react-dropzone';
 import { Gear, X } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
-//import './toast.css'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-let backend = process.env.REACT_APP_BACKEND
+let backend = process.env.REACT_APP_BACKEND;
 
 const CSVUpload = () => {
   const [showModal, setShowModal] = useState(false);
@@ -15,14 +14,15 @@ const CSVUpload = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [showTableModal, setShowTableModal] = useState(false);
-  const [metadataAlertMessage, setMetadataAlertMessage] = useState("");
-  const [uploadAlertMessage, setUploadAlertMessage] = useState("");
   const [tableData, setTableData] = useState([]);
   const [selectedFileNames, setSelectedFileNames] = useState([]);
   const [showMetadataModal, setShowMetadataModal] = useState(false);
-  const [metadataAlertVariant, setMetadataAlertVariant] = useState("success");
-  const [uploadAlertVariant, setUploadAlertVariant] = useState("success");
-  const [columnNameTable, setcolumnNameTable] = useState([])
+  const [columnNameTable, setColumnNameTable] = useState([]);
+  const [areFilesUploaded, setAreFilesUploaded] = useState(false);
+  const [isMetadataConfigured, setIsMetadataConfigured] = useState(false);
+  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false)
+  const [metadataCheckStatus, setMetadataCheckStatus] = useState([]);
+
   const handleClose = () => {
     setShowModal(false);
     resetForm();
@@ -33,9 +33,14 @@ const CSVUpload = () => {
     resetForm();
   };
 
-  // Function to show the table modal
   const handleShowTableModal = () => {
     setShowTableModal(true);
+  };
+
+  const handleTableSelectToggle = (index) => {
+    const updatedColumnNameTable = [...columnNameTable];
+    updatedColumnNameTable[index].selected = !updatedColumnNameTable[index].selected;
+    setColumnNameTable(updatedColumnNameTable);
   };
 
   const renderTableModalFooter = () => {
@@ -59,53 +64,62 @@ const CSVUpload = () => {
     }
   };
 
-  // Function to hide the table modal
   const handleCloseTableModal = async () => {
-    let table_names = new Set()
-
-    for (const item of columnNameTable) {
-      item.tableNames.forEach(table_names.add, table_names);
-    }
+    const tableNamesToJoin = new Set(
+      columnNameTable.filter((table) => table.selected)
+        .map((table) => table.tableNames)
+        .flat()
+    );
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
+
     try {
       const response = await fetch(backend + '/api/upload/jointables', {
         method: 'POST',
-        body: JSON.stringify({ tables: [...table_names], shouldJoin: false }),
+        body: JSON.stringify({ tables: [...tableNamesToJoin], shouldJoin: false }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
           'Authorization': bearer
         }
       });
-      await response.json();
-      setShowTableModal(false);
+
+      if (response.ok) {
+        await response.json();
+        setShowTableModal(false);
+        toast.success('CSV uploaded without joining!', {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      } else {
+        toast.error('Error joining tables!', {
+          position: toast.POSITION.TOP_RIGHT,
+        });
+      }
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      toast.error('Error joining tables!', {
+        position: toast.POSITION.TOP_RIGHT,
+      });
     }
   };
 
-
-  // Use useEffect to open the modal when columnNameTable is set
   useEffect(() => {
     if (columnNameTable.length > 0) {
       handleShowTableModal();
     }
   }, [columnNameTable]);
 
-
   const handleJoinModal = async () => {
-    let table_names = new Set();
-
-    for (const item of columnNameTable) {
-      item.tableNames.forEach(table_names.add, table_names);
-    }
-
+    const tableNamesToJoin = new Set(
+      columnNameTable.filter((table) => table.selected)
+        .map((table) => table.tableNames)
+        .flat()
+    );
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
 
     try {
       const response = await fetch(backend + '/api/upload/jointables', {
         method: 'POST',
-        body: JSON.stringify({ tables: [...table_names], shouldJoin: true }),
+        body: JSON.stringify({ tables: [...tableNamesToJoin], shouldJoin: true }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -132,13 +146,8 @@ const CSVUpload = () => {
     }
   };
 
-
   const resetForm = () => {
     setSelectedFiles([]);
-    setMetadataAlertMessage("");
-    setMetadataAlertVariant("success");
-    setUploadAlertMessage("");
-    setUploadAlertVariant("success");
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -150,20 +159,23 @@ const CSVUpload = () => {
       setSelectedFiles([...selectedFiles, ...newFiles]);
 
       try {
-
         await Promise.all(newFiles.map(file => handleUpload(file)));
-
-        // Once all files are uploaded, get column names
+        setAreFilesUploaded(true);
         let colmNames = await getColumnName();
-        setcolumnNameTable(colmNames);
+
+        const columnNameTableWithSelection = colmNames.map((table) => ({
+          ...table,
+          selected: false,
+        }));
+        setColumnNameTable(columnNameTableWithSelection);
 
         if (colmNames.length === 0) {
-          let table_names = new Set()
+          let tableNamesToJoin = [];
           let bearer = 'Bearer ' + window.localStorage.getItem("token");
           try {
             const response = await fetch(backend + '/api/upload/jointables', {
               method: 'POST',
-              body: JSON.stringify({ tables: [...table_names], shouldJoin: false }),
+              body: JSON.stringify({ tables: tableNamesToJoin, shouldJoin: false }),
               headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
@@ -173,16 +185,14 @@ const CSVUpload = () => {
             await response.json();
             setShowTableModal(false);
           } catch (error) {
-            console.log(error)
+            console.log(error);
           }
         }
-
       } catch (error) {
         console.error(error);
       }
     },
   });
-
 
   const getColumnName = async () => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
@@ -196,17 +206,17 @@ const CSVUpload = () => {
         }
       });
       let data = await response.json();
+      console.log(data);
       return data;
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
-  }
-
+  };
 
   const handleConfigureMetadata = async (file) => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
-    let schema = file.name.split('.')[0]
-    setSelectedFileNames(schema)
+    let schema = file.name.split('.')[0].toLowerCase();
+    setSelectedFileNames(schema);
     try {
       const response = await fetch(backend + '/api/misc/getSchema', {
         method: 'POST',
@@ -238,7 +248,46 @@ const CSVUpload = () => {
   const handleCloseMetadataModal = () => {
     setShowMetadataModal(false);
   };
+  const handleCloseMetadataConfigModal = () => {
+    setIsMetadataModalOpen(false);
+  };
 
+  const handleCheckMetaData = async () => {
+    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    try {
+      const response = await fetch(backend + '/api/upload/checkmetadata', {
+        method: 'POST',
+      //  body: JSON.stringify({ tableNames: [...tableNames] }),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': bearer
+        }
+      });
+      let status = await response.json();
+      /* status is
+      [
+        {
+            "table_name": "orders",
+            "exists": false
+        },
+        {
+            "table_name": "customer",
+            "exists": false
+        },
+        {
+            "table_name": "employee",
+            "exists": false
+        }
+    ]*/
+      //  console.log(status);
+      setMetadataCheckStatus(status);
+      setIsMetadataModalOpen(true); // Open the Metadata Configuration modal
+      console.log(metadataCheckStatus);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const handleRemoveFile = (index) => {
     const newSelectedFiles = [...selectedFiles];
@@ -246,13 +295,10 @@ const CSVUpload = () => {
     setSelectedFiles(newSelectedFiles);
   };
 
-
-
   const handleMetaDataSave = async () => {
     setIsSaving(true);
-    setMetadataAlertMessage("");
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
-    
+
     try {
       const response = await fetch(backend + '/api/misc/saveMetadata', {
         method: 'POST',
@@ -268,7 +314,7 @@ const CSVUpload = () => {
       });
 
       const data = await response.json();
-      console.log(data)
+      console.log(data);
       if (response.ok) {
         toast.success('Column description added!', {
           position: toast.POSITION.TOP_RIGHT,
@@ -333,7 +379,6 @@ const CSVUpload = () => {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            {/* Use react-dropzone here */}
             <div {...getRootProps()} style={dropzoneStyles}>
               <input {...getInputProps()} />
               {isDragActive ? (
@@ -382,8 +427,21 @@ const CSVUpload = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="primary" onClick={handleShowTableModal}>
-            Check
+          {/* Check Columns button with disabled attribute */}
+          <Button
+            variant="primary"
+            onClick={handleShowTableModal}
+            disabled={!areFilesUploaded}
+          >
+            Check Columns
+          </Button>
+          {/* Check Metadata button with disabled attribute */}
+          <Button
+            variant="primary"
+            onClick={handleCheckMetaData}
+            disabled={!areFilesUploaded || isMetadataConfigured}
+          >
+            Check Metadata
           </Button>
           <Button variant="secondary" onClick={handleClose}>
             Close
@@ -445,8 +503,43 @@ const CSVUpload = () => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-
+      <Modal show={isMetadataModalOpen} onHide={handleCloseMetadataConfigModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Metadata Configuration</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {metadataCheckStatus.length > 0 && (
+            <Table striped bordered hover>
+              <thead>
+                <tr>
+                  <th>Table Name</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metadataCheckStatus.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.table_name}</td>
+                    <td>
+                      {item.exists ? (
+                        <span>&#10004; Configured</span>
+                      ) : (
+                        <span>&#10008; Not Configured</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseMetadataConfigModal}>
+            Close
+          </Button>
+          {/* Add a button here if you want some action */}
+        </Modal.Footer>
+      </Modal>
       <Modal show={showTableModal} onHide={handleCloseTableModal}>
         <Modal.Header closeButton>
           <Modal.Title>Do you want to join these tables?</Modal.Title>
@@ -456,6 +549,7 @@ const CSVUpload = () => {
             <Table striped bordered hover>
               <thead>
                 <tr>
+                  <th>Select</th>
                   <th>Common Column</th>
                   <th>Table</th>
                 </tr>
@@ -463,6 +557,13 @@ const CSVUpload = () => {
               <tbody>
                 {columnNameTable.map((item, index) => (
                   <tr key={index}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={item.selected}
+                        onChange={() => handleTableSelectToggle(index)}
+                      />
+                    </td>
                     <td>{item.columnName}</td>
                     <td>{item.tableNames.join(", ")}</td>
                   </tr>
@@ -477,34 +578,6 @@ const CSVUpload = () => {
           {renderTableModalFooter()}
         </Modal.Footer>
       </Modal>
-
-      {/* Bootstrap Notification for Upload Success */}
-      {uploadAlertMessage && (
-        <div
-          className={`toast show alert-${uploadAlertVariant}`}
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-        >
-          <div className="toast-body">
-            {uploadAlertMessage}
-          </div>
-        </div>
-      )}
-
-      {/* Bootstrap Notification for Metadata Save Success */}
-      {metadataAlertMessage && (
-        <div
-          className={`toast show alert-${metadataAlertVariant}`}
-          role="alert"
-          aria-live="assertive"
-          aria-atomic="true"
-        >
-          <div className="toast-body">
-            {metadataAlertMessage}
-          </div>
-        </div>
-      )}
       <ToastContainer autoClose={500} />
     </>
   );

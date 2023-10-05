@@ -31,7 +31,7 @@ router.post('/saveMetadata', authenticateToken, async (req, res) => {
     let table_name = '';
     try {
         const metadata = req.body;
-        table_name = 'Metadata_' + metadata.tableName;
+        table_name = 'metadata_' + metadata.tableName.toLowerCase();
         const metadataSql = `USE ${process.env.MYSQL_DATABASE};\n` +
             `DROP TABLE IF EXISTS ${table_name};\n` +
             `CREATE TABLE ${table_name} (Column_Name VARCHAR(50) NOT NULL, Description VARCHAR(200), PRIMARY KEY (Column_Name));\n`;
@@ -92,22 +92,21 @@ router.post('/truncate', authenticateToken, async (req, res) => {
 
 });
 
-/*
+
 router.post('/getSchema', authenticateToken, async (req, res) => {
     let schema = req.body.schema;
     try {
-        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema}"`;
-        console.log(columnQuery);
+        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema.toLowerCase()}"`;
         const [rows] = await connection.query(columnQuery);
         // console.log(rows);
 
-        const [data] = await connection.query(`Select * from ${schema}`)
-        //   console.log(data);
+        const [data] = await connection.query(`SELECT * from ${schema} LIMIT 3;`)
+           console.log(data);
         const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
         //   console.log(formattedStrings)
         const columnNames = rows.map((item) => item.COLUMN_NAME).join(",");
         // console.log(columnNames);
-        const prompt = `Please return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}`;
+        const prompt = `Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.`;
 
         const llm = new OpenAI({
             model: "text-davinci-003",
@@ -119,12 +118,13 @@ router.post('/getSchema', authenticateToken, async (req, res) => {
         });
         let descriptions = await llm.call(prompt);
         descriptions = descriptions.trim().split("\n");
+        console.log(descriptions)
 
-        for (let i = 0; i < rows.length; i++) {
+        for (let i = 0; i < rows.length - 1; i++) {
             rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
         }
 
-        // console.log(rows);
+        console.log(rows);
 
         return res.status(200).json(rows);
     } catch (error) {
@@ -132,8 +132,8 @@ router.post('/getSchema', authenticateToken, async (req, res) => {
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
-*/
 
+/*
 router.post('/getSchema', authenticateToken, async (req, res) => {
     let schema = req.body.schema;
     try {
@@ -145,7 +145,7 @@ router.post('/getSchema', authenticateToken, async (req, res) => {
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
-
+*/
 
 
 function flattenObjectValues(obj) {
@@ -153,7 +153,6 @@ function flattenObjectValues(obj) {
         if (typeof val === 'object' && !Array.isArray(val)) {
             return flattenObjectValues(val);
         }
-        return val;
     }).join(',');
 }
 
