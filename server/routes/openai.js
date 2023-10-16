@@ -39,7 +39,8 @@ router.post('/', async (req, res) => {
                 query: 'User session expired, please logout and login again!'
             });
         }
-
+        console.log("Query...........")
+        console.log(query)
         let result = await chain.call({ input: query + '\nPlease only return the valid sql part of the answer and remember the actual sql table names. Please do not use Metadata tables for sql query.\n' });
         console.log(result)
 

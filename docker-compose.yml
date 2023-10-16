@@ -11,16 +11,24 @@ services:
       - 5555:5555
     networks:
       - app
+    environment:
+      - MYSQL_HOST=mysqldb
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=dbpassword
+      - MYSQL_DATABASE=demonstrator
     env_file:
       - ./server/.env
     depends_on:
       - mongodb
       - mysqldb
-      
 
   frontend:
     container_name: frontend_container
     restart: always
+    environment:
+      - REACT_APP_BACKEND=http://localhost:5555
+    ports:
+      - 5050:80
     networks:
       - app
     build:
@@ -28,8 +36,6 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./client/.env
-    ports:
-      - 5050:5050
     depends_on:
       - backend
 

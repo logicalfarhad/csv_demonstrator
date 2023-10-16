@@ -4,11 +4,12 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const { dbConnect } = require('../config/db');
 const createChain = require('../config/conversationChain');
-
+const fetch = require('node-fetch')
 const connection = dbConnect();
 const chain = createChain();
 const { OpenAI } = require("langchain/llms/openai");
 
+console.log(process.env.MYSQL_DATABASE)
 // Middleware to check authentication token
 const authenticateToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -69,15 +70,67 @@ router.post('/saveMetadata', authenticateToken, async (req, res) => {
     }
 });
 
+router.post("/getCoordinates", authenticateToken, async (req, res) => {
+
+    try {
+        const { cityName } = req.body;
+        console.log(req.body)
+        if (!cityName) {
+            res.status(400).json({ error: 'City name is required in the request body' });
+            return;
+        }
+
+        const dbpediaEndpoint = 'https://dbpedia.org/sparql';
+        const sparqlQuery = `
+            PREFIX dbo: <http://dbpedia.org/ontology/>
+            PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+      
+            SELECT ?latitude ?longitude
+            WHERE {
+              ?city rdf:type dbo:City .
+              ?city rdfs:label "${cityName}"@en .
+              ?city geo:lat ?latitude .
+              ?city geo:long ?longitude .
+            }
+          `;
+
+        // Encode the SPARQL query
+        const encodedQuery = encodeURIComponent(sparqlQuery);
+
+        // Build the full URL for the SPARQL request
+        const sparqlUrl = `${dbpediaEndpoint}?query=${encodedQuery}&format=json`;
+
+        // Use node-fetch to send the SPARQL request to DBpedia
+        const response = await fetch(sparqlUrl);
+        const data = await response.json();
+
+        // Check if there are results and extract latitude and longitude
+        if (data.results && data.results.bindings.length > 0) {
+            const cityData = data.results.bindings[0];
+            const latitude = parseFloat(cityData.latitude.value);
+            const longitude = parseFloat(cityData.longitude.value);
+
+            res.json({ latitude, longitude });
+        } else {
+            res.status(404).json({ error: 'City not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.post('/truncate', authenticateToken, async (req, res) => {
+    console.log(process.env.MYSQL_DATABASE)
     try {
 
+        await connection.query(`USE ${process.env.MYSQL_DATABASE};`);
         await connection.query('SET FOREIGN_KEY_CHECKS=0');
         let sql = `SELECT CONCAT('DROP TABLE ', TABLE_NAME, ';')
             FROM INFORMATION_SCHEMA.tables
             WHERE TABLE_SCHEMA = '${process.env.MYSQL_DATABASE}';`;
 
         let [rows] = await connection.query(sql);
+        console.log(rows)
         for (const item of rows) {
             for (const sql of Object.values(item)) {
                 await connection.query(`use ${process.env.MYSQL_DATABASE};${sql}`);
@@ -101,7 +154,7 @@ router.post('/getSchema', authenticateToken, async (req, res) => {
         // console.log(rows);
 
         const [data] = await connection.query(`SELECT * from ${schema} LIMIT 3;`)
-           console.log(data);
+        console.log(data);
         const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
         //   console.log(formattedStrings)
         const columnNames = rows.map((item) => item.COLUMN_NAME).join(",");

@@ -78,13 +78,13 @@ const Home = () => {
         if (!data.valid) {
           console.warn("User session expired, please login again!");
           // Handle token invalidity, such as logging out the user
-          navigate("/auth/login");
+          navigate("/demonstrator/auth/login");
         } else {
-          navigate("/");
+          navigate("/demonstrator");
         }
       } catch (error) {
         console.error("Error checking token validity:", error);
-        navigate("/auth/login");
+        navigate("/demonstrator/auth/login");
       }
     }
 
@@ -92,7 +92,7 @@ const Home = () => {
       if (window.localStorage.getItem("token")) {
         checkTokenValidity();
       } else {
-        navigate("/auth/login");
+        navigate("/demonstrator/auth/login");
       }
     }
 

@@ -111,7 +111,7 @@ const checkMetadataTableExists = (tableNames) => {
 
     return result;
 }
-router.post("/checkmetadata", async (req, res) => {
+router.post("/checkmetadata",authenticateToken, async (req, res) => {
     try {
         await connection.query(`USE ${MYSQL_DATABASE};`);
         let query = 'SHOW TABLES;';
@@ -126,7 +126,7 @@ router.post("/checkmetadata", async (req, res) => {
     }
 });
 
-router.post("/jointables", async (req, res) => {
+router.post("/jointables",authenticateToken, async (req, res) => {
     let tableNames = req.body.tables;
     if (tableNames.length == 0) {
         tableNames = [...backup_table]
@@ -157,7 +157,7 @@ router.post("/jointables", async (req, res) => {
         const schemaResults = await Promise.all(schemaPromises);
         const schemaString = schemaResults.join("");
         console.log(schemaString)
-        const res1 = await chain.call({ input: schemaString });
+        const res1 = await chain.call({ input: "This is the sql table schemas.\n You need to return sql result based on some questions on this schemas.\n"+schemaString });
         console.log(res1);
 
         return res.status(200).json({ success: true });

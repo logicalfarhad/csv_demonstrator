@@ -28,7 +28,7 @@ const LoginForm = () => {
 
       if (response.status === 200) {
         dispatch({ type: "LOGIN", payload: data.token });
-        navigate("/");
+        navigate("/demonstrator");
       } else {
         setErrorMessage(data.message);
       }

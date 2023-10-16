@@ -2,6 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { Bar, Line, Pie } from 'react-chartjs-2';
 import L from 'leaflet'; // Import Leaflet
 
+/* eslint-disable import/first */
+let backend = process.env.REACT_APP_BACKEND;
+console.log(backend)
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,46 +34,23 @@ ChartJS.register(
 
 
 const getCityCoordinates = async (cityName) => {
-  // Define the DBpedia SPARQL endpoint and your SPARQL query
-  const dbpediaEndpoint = 'https://dbpedia.org/sparql';
-  const sparqlQuery = `
-    PREFIX dbo: <http://dbpedia.org/ontology/>
-    PREFIX geo: <http://www.w3.org/2003/01/geo/wgs84_pos#>
 
-    SELECT ?latitude ?longitude
-    WHERE {
-      ?city rdf:type dbo:City .
-      ?city rdfs:label "${cityName}"@en .
-      ?city geo:lat ?latitude .
-      ?city geo:long ?longitude .
-    }
-  `;
-
-  // Encode the SPARQL query
-  const encodedQuery = encodeURIComponent(sparqlQuery);
-
-  // Build the full URL for the SPARQL request
-  const sparqlUrl = `${dbpediaEndpoint}?query=${encodedQuery}&format=json`;
-
+  let bearer = 'Bearer ' + window.localStorage.getItem("token");
   try {
-    // Send the SPARQL request to DBpedia
-    const response = await fetch(sparqlUrl);
-    const data = await response.json();
-
-    // Check if there are results and extract latitude and longitude
-    if (data.results && data.results.bindings.length > 0) {
-      const cityData = data.results.bindings[0];
-      const latitude = parseFloat(cityData.latitude.value);
-      const longitude = parseFloat(cityData.longitude.value);
-
-      return { latitude, longitude };
-    } else {
-      return {
-
+    const response = await fetch(backend + '/api/misc/getCoordinates', {
+      method: 'POST',
+      body: JSON.stringify({ cityName: cityName }),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': bearer
       }
-    }
+    });
+    let data = await response.json();
+    console.log(data)
+    return data;
   } catch (error) {
-    throw new Error(`Error fetching data from DBpedia: ${error.message}`);
+    console.log(error);
   }
 }
 

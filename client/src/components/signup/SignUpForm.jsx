@@ -24,7 +24,7 @@ const SignupForm = () => {
 
       const data = await response.json();
       if (response.status === 201) {
-        navigate("/login");
+        navigate("/demonstrator/login");
       } else {
         setErrorMessage(data.message);
       }

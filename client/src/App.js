@@ -6,12 +6,11 @@ import LoginForm from "./components/login/LoginForm";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
-
 function App() {
   const { token } = useContext(AuthContext);
 
   const RequireAuth = ({ children }) => {
-    return typeof token === "string" && token.length > 0 ? children : <Navigate to="auth/login" />;
+    return typeof token === "string" && token.length > 0 ? children : <Navigate to="/demonstrator/auth/login" />;
   };
 
   return (
@@ -20,15 +19,15 @@ function App() {
         <Route
           index
           exact
-          path="/"
+          path="/demonstrator"
           element={
             <RequireAuth>
               <Home />
             </RequireAuth>
           }
         />
-        <Route exact path="auth/login" element={<Login />} />
-        <Route exact path="login" element={<LoginForm />} />
+        <Route exact path="/demonstrator/auth/login" element={<Login />} />
+        <Route exact path="/demonstrator/login" element={<LoginForm />} />
       </Routes>
     </div>
   );

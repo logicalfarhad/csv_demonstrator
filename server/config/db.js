@@ -29,20 +29,23 @@ exports.dbConnect = () => {
         user: process.env.MYSQL_USER,
         password: process.env.MYSQL_PASSWORD,
         database: process.env.MYSQL_DATABASE,
-        multipleStatements: true
+        multipleStatements: true,
+       // port: 3307
     });
+
 
 
 
     /*
-    const connection = mysql.createPool({
-        connectionLimit: 100,
-        host: 'localhost',
-        user: 'root',
-        password: 'root',
-        database: process.env.MYSQL_DATABASE,
-        multipleStatements: true
-    });
+        const connection = mysql.createPool({
+            connectionLimit: 100,
+            host: 'localhost',
+            user: 'root',
+            password: 'root',
+            database: 'demonstrator',
+            multipleStatements: true,
+           // port: 3306
+        });
     */
 
     // console.log(process.env.DB_HOST, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_NAME);

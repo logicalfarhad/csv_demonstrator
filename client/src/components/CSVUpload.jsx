@@ -265,21 +265,6 @@ const CSVUpload = () => {
         }
       });
       let status = await response.json();
-      /* status is
-      [
-        {
-            "table_name": "orders",
-            "exists": false
-        },
-        {
-            "table_name": "customer",
-            "exists": false
-        },
-        {
-            "table_name": "employee",
-            "exists": false
-        }
-    ]*/
       //  console.log(status);
       setMetadataCheckStatus(status);
       setIsMetadataModalOpen(true); // Open the Metadata Configuration modal
