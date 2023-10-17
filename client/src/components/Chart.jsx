@@ -3,8 +3,8 @@ import { Bar, Line, Pie } from 'react-chartjs-2';
 import L from 'leaflet'; // Import Leaflet
 
 /* eslint-disable import/first */
-let backend = process.env.REACT_APP_BACKEND;
-console.log(backend)
+//let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
+let backend = "http://localhost:4000"
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -37,7 +37,7 @@ const getCityCoordinates = async (cityName) => {
 
   let bearer = 'Bearer ' + window.localStorage.getItem("token");
   try {
-    const response = await fetch(backend + '/api/misc/getCoordinates', {
+    const response = await fetch(backend + '/misc/getCoordinates', {
       method: 'POST',
       body: JSON.stringify({ cityName: cityName }),
       headers: {

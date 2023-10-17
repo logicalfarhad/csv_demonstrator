@@ -1,14 +1,14 @@
 version: '3.8'
 services:
-
   backend:
     container_name: backend_container
     restart: always
+    pull_policy: build
+    ports:
+      - 4000:80
     build:
       context: ./server
       dockerfile: Dockerfile
-    ports:
-      - 5555:5555
     networks:
       - app
     environment:
@@ -25,10 +25,9 @@ services:
   frontend:
     container_name: frontend_container
     restart: always
+    pull_policy: build
     environment:
-      - REACT_APP_BACKEND=http://localhost:5555
-    ports:
-      - 5050:80
+      - REACT_BACKEND_API_URL=http://backend:4000
     networks:
       - app
     build:
@@ -49,11 +48,10 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: demonstrator
-    ports:
-      - 3307:3306
 
   nginx:
     container_name: nginx_container
+    pull_policy: build
     build:
       context: ./nginx
     networks:
@@ -61,17 +59,16 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - frontend
+      - mongodb
+      - mysqldb
       - backend
-
+      - frontend
   mongodb:
     container_name: mongodb_container
     image: mongo:jammy
     restart: always
     networks:
       - app
-    ports:
-      - "27018:27017"
     volumes:
       - mongodb_data:/data/db
 

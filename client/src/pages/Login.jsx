@@ -14,7 +14,7 @@ const Login = () => {
       setIsSignupFormVisible(true);
     }
     if (purpose === "login") {
-      navigate("/demonstrator/login");
+      navigate("/login");
     }
   };
 

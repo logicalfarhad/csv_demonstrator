@@ -10,7 +10,7 @@ function App() {
   const { token } = useContext(AuthContext);
 
   const RequireAuth = ({ children }) => {
-    return typeof token === "string" && token.length > 0 ? children : <Navigate to="/demonstrator/auth/login" />;
+    return typeof token === "string" && token.length > 0 ? children : <Navigate to="/auth/login" />;
   };
 
   return (
@@ -18,16 +18,15 @@ function App() {
       <Routes>
         <Route
           index
-          exact
-          path="/demonstrator"
+          path="/"
           element={
             <RequireAuth>
               <Home />
             </RequireAuth>
           }
         />
-        <Route exact path="/demonstrator/auth/login" element={<Login />} />
-        <Route exact path="/demonstrator/login" element={<LoginForm />} />
+        <Route path="/auth/login" element={<Login />} />
+        <Route path="/login" element={<LoginForm />} />
       </Routes>
     </div>
   );
