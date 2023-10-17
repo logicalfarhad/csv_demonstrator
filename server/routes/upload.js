@@ -157,9 +157,8 @@ router.post("/jointables",authenticateToken, async (req, res) => {
         const schemaResults = await Promise.all(schemaPromises);
         const schemaString = schemaResults.join("");
         console.log(schemaString)
-        const res1 = await chain.call({ input: "This is the sql table schemas.\n You need to return sql result based on some questions on this schemas.\n"+schemaString });
+        const res1 = await chain.call({ input: "This is the sql table schemas.\n You need to return sql part of the result only based on some questions on this schemas.\n"+schemaString });
         console.log(res1);
-
         return res.status(200).json({ success: true });
     } catch (error) {
         console.error(`Error executing SQL: ${error.message}`);

@@ -5,8 +5,7 @@ import { Gear, X } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
-let backend = process.env.REACT_APP_BACKEND;
+let backend = 'http://localhost:4000'
 
 const CSVUpload = () => {
   const [showModal, setShowModal] = useState(false);
@@ -73,7 +72,7 @@ const CSVUpload = () => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
 
     try {
-      const response = await fetch(backend + '/api/upload/jointables', {
+      const response = await fetch(backend + '/upload/jointables', {
         method: 'POST',
         body: JSON.stringify({ tables: [...tableNamesToJoin], shouldJoin: false }),
         headers: {
@@ -117,7 +116,7 @@ const CSVUpload = () => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
 
     try {
-      const response = await fetch(backend + '/api/upload/jointables', {
+      const response = await fetch(backend + '/upload/jointables', {
         method: 'POST',
         body: JSON.stringify({ tables: [...tableNamesToJoin], shouldJoin: true }),
         headers: {
@@ -173,7 +172,7 @@ const CSVUpload = () => {
           let tableNamesToJoin = [];
           let bearer = 'Bearer ' + window.localStorage.getItem("token");
           try {
-            const response = await fetch(backend + '/api/upload/jointables', {
+            const response = await fetch(backend + '/upload/jointables', {
               method: 'POST',
               body: JSON.stringify({ tables: tableNamesToJoin, shouldJoin: false }),
               headers: {
@@ -197,7 +196,7 @@ const CSVUpload = () => {
   const getColumnName = async () => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
     try {
-      const response = await fetch(backend + '/api/upload/gettables', {
+      const response = await fetch(backend + '/upload/gettables', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -218,7 +217,7 @@ const CSVUpload = () => {
     let schema = file.name.split('.')[0].toLowerCase();
     setSelectedFileNames(schema);
     try {
-      const response = await fetch(backend + '/api/misc/getSchema', {
+      const response = await fetch(backend + '/misc/getSchema', {
         method: 'POST',
         body: JSON.stringify({ schema: schema }),
         headers: {
@@ -255,9 +254,9 @@ const CSVUpload = () => {
   const handleCheckMetaData = async () => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
     try {
-      const response = await fetch(backend + '/api/upload/checkmetadata', {
+      const response = await fetch(backend + '/upload/checkmetadata', {
         method: 'POST',
-      //  body: JSON.stringify({ tableNames: [...tableNames] }),
+        //  body: JSON.stringify({ tableNames: [...tableNames] }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
@@ -285,7 +284,7 @@ const CSVUpload = () => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
 
     try {
-      const response = await fetch(backend + '/api/misc/saveMetadata', {
+      const response = await fetch(backend + '/misc/saveMetadata', {
         method: 'POST',
         body: JSON.stringify({
           tableData: tableData,
@@ -324,7 +323,7 @@ const CSVUpload = () => {
     formData.append('csv', file);
 
     try {
-      const response = await fetch(backend + '/api/upload', {
+      const response = await fetch(backend + '/upload', {
         method: 'POST',
         body: formData,
         headers: {

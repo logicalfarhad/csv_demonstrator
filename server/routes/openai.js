@@ -56,6 +56,7 @@ router.post('/', async (req, res) => {
         if (result.response) {
             let sqlQuery = result.response.trim();
             console.log(sqlQuery)
+            sqlQuery = sqlQuery.split(':')[1].trim()
             let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
             [rows] = await connection.query(sqlQuery);
             res.status(200).json({
@@ -64,8 +65,10 @@ router.post('/', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'An error occurred' });
+        res.status(200).json({
+            queryResult: false,
+            query: sqlQuery
+        });
     }
 });
 module.exports = router;

@@ -1,7 +1,9 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-let backend = process.env.REACT_APP_BACKEND
+//let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
+let backend ="http://localhost:4000"
+console.log(backend)
 const NavLinks = ({ svg, link, text, setChatLog }) => {
   const { dispatch } = useContext(AuthContext);
 
@@ -10,7 +12,7 @@ const NavLinks = ({ svg, link, text, setChatLog }) => {
     if (text === "Log out") {
       try {
         let bearer = 'Bearer ' + window.localStorage.getItem("token");
-        const response = await fetch(backend + '/api/misc/truncate', {
+        const response = await fetch(backend + '/misc/truncate', {
           method: 'POST',
           headers: {
             'Accept': 'application/json',

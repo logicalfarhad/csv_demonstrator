@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./signupform.css";
 import { useNavigate } from "react-router-dom";
 import SvgComponent from "../SvgComponent";
-let backend = process.env.REACT_APP_BACKEND
+//console.log(process.env.REACT_BACKEND_API_URL)
+let backend = "http://localhost:4000"
+
 const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,7 +16,7 @@ const SignupForm = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(backend + "/api/signup", {
+      const response = await fetch(backend + "/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -24,7 +26,7 @@ const SignupForm = () => {
 
       const data = await response.json();
       if (response.status === 201) {
-        navigate("/demonstrator/login");
+        navigate("/login");
       } else {
         setErrorMessage(data.message);
       }
@@ -34,6 +36,25 @@ const SignupForm = () => {
     }
   };
 
+  useEffect(() => {
+    // Define an async function for the fetch call
+    async function fetchData() {
+      try {
+        const response = await fetch(backend + '/test');
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const result = await response.json();
+        console.log(result)
+        //setData(result);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    // Call the fetch function when the component mounts
+    fetchData();
+  }, []);
   return (
     <div className="signupFormContainer">
       <SvgComponent w={50} h={50} stroke="#202123" />

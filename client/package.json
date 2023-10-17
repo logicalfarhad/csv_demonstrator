@@ -8,6 +8,7 @@
     "@testing-library/user-event": "^13.5.0",
     "bootstrap": "^5.3.2",
     "chart.js": "^4.3.3",
+    "history": "^5.3.0",
     "leaflet": "^1.9.4",
     "mongoose": "^7.5.3",
     "react": "^18.2.0",
@@ -25,8 +26,9 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "export PORT=5050 && react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
+    "dev": "chmod +x ./env.sh && ./env.sh && cp env-config.js ./public/ && react-scripts start",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
