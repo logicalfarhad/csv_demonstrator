@@ -3,9 +3,7 @@ import "../signup/signupform.css";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import SvgComponent from "../SvgComponent";
-//let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
-let backend = "http://localhost:4000"
-//console.log(backend)
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const LoginForm = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");

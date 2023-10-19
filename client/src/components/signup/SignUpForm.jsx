@@ -2,9 +2,8 @@ import React, { useState, useEffect } from "react";
 import "./signupform.css";
 import { useNavigate } from "react-router-dom";
 import SvgComponent from "../SvgComponent";
-//console.log(process.env.REACT_BACKEND_API_URL)
-let backend = "http://localhost:4000"
-
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
+console.log(process.env.NODE_ENV)
 const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

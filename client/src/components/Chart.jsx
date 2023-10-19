@@ -3,8 +3,7 @@ import { Bar, Line, Pie } from 'react-chartjs-2';
 import L from 'leaflet'; // Import Leaflet
 
 /* eslint-disable import/first */
-//let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
-let backend = "http://localhost:4000"
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 import {
   Chart as ChartJS,
   CategoryScale,

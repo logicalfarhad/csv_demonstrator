@@ -11,7 +11,8 @@ const miscRouter = require('./routes/misc')
 const db = require("./config/db");
 
 const app = express();
-const port = process.env["NODE_ENV"] === "development" ? 4000 : 80;
+//const port = process.env["NODE_ENV"] === "development" ? 4000 : 80;
+const port = 4000;
 //console.log(process.env)
 if (process.env["NODE_ENV"] === "development") {
   console.log("dev mode!");

@@ -4,8 +4,6 @@ services:
     container_name: backend_container
     restart: always
     pull_policy: build
-    ports:
-      - 4000:80
     build:
       context: ./server
       dockerfile: Dockerfile

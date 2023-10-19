@@ -7,9 +7,7 @@ import Loading from "../components/Loading";
 import NavContent from "../components/NavContent";
 import SvgComponent from "../components/SvgComponent";
 import { useNavigate } from "react-router-dom";
-//let url = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
-let url = "http://localhost:4000"
-console.log(url)
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const Home = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [inputPrompt, setInputPrompt] = useState("");
@@ -34,7 +32,7 @@ const Home = () => {
       async function callAPI() {
         let bearer = 'Bearer ' + window.localStorage.getItem("token");
         try {
-          const response = await fetch(url + "/openai", {
+          const response = await fetch(backend + "/openai", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -69,7 +67,7 @@ const Home = () => {
     async function checkTokenValidity() {
       try {
         let bearer = 'Bearer ' + window.localStorage.getItem("token");
-        const response = await fetch(url + "/login/check-token", {
+        const response = await fetch(backend + "/login/check-token", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -5,7 +5,7 @@ import { Gear, X } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-let backend = 'http://localhost:4000'
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
 const CSVUpload = () => {
   const [showModal, setShowModal] = useState(false);
