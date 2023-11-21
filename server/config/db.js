@@ -22,31 +22,32 @@ exports.mongoConnect = () => {
 };
 
 exports.dbConnect = () => {
-
-    const connection = mysql.createPool({
-        connectionLimit: 100,
-        host: process.env.MYSQL_HOST,
-        user: process.env.MYSQL_USER,
-        password: process.env.MYSQL_PASSWORD,
-        database: process.env.MYSQL_DATABASE,
-        multipleStatements: true,
-       // port: 3307
-    });
-
-
-
-
     /*
         const connection = mysql.createPool({
             connectionLimit: 100,
-            host: 'localhost',
-            user: 'root',
-            password: 'root',
-            database: 'demonstrator',
+            host: process.env.MYSQL_HOST,
+            user: process.env.MYSQL_USER,
+            password: process.env.MYSQL_PASSWORD,
+            database: process.env.MYSQL_DATABASE,
             multipleStatements: true,
-           // port: 3306
+           // port: 3307
         });
-    */
+        */
+
+
+
+
+
+    const connection = mysql.createPool({
+        connectionLimit: 100,
+        host: 'localhost',
+        user: 'root',
+        password: 'root',
+        database: 'demonstrator',
+        multipleStatements: true,
+        // port: 3306
+    });
+
 
     // console.log(process.env.DB_HOST, process.env.DB_USER, process.env.DB_PASSWORD, process.env.DB_NAME);
 

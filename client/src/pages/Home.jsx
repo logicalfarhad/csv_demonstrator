@@ -41,6 +41,7 @@ const Home = () => {
             body: JSON.stringify({ query: inputPrompt }),
           });
           const data = await response.json();
+          console.log(data)
           setChatLog([
             ...chatLog,
             {

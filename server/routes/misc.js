@@ -1,80 +1,97 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const { dbConnect } = require('../config/db');
-const createChain = require('../config/conversationChain');
 const fetch = require('node-fetch')
 const connection = dbConnect();
-const chain = createChain();
-const { OpenAI } = require("langchain/llms/openai");
+const { MYSQL_DATABASE, LlAMA_API } = process.env;
+const historyModule = require('../config/memory');
+const extractColumnInfo = (data) => {
+    const columnInfo = {
 
-console.log(process.env.MYSQL_DATABASE)
-// Middleware to check authentication token
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).json({ error: 'Not Authorized' });
-    }
+    };
 
-    const token = authHeader.split(' ')[1];
+    // Loop through the array and extract information
+    for (let i = 2; i < data.length; i++) {
+        if (data[i].trim() === '') continue;
+    
+        const matches = data[i].match(/\d+\.\s*([^:]+)\s*:\s*(.*)/);
+        if (matches) {
+          const columnName = matches[1].trim().split(" ").join("_").toLowerCase();
+          const description = matches[2].trim();
+          columnInfo[columnName] = description;
+        }
+      }
+    return columnInfo;
+}
+const getResult = async (question) => {
+
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            prompt: question,
+            max_tokens: 500,
+            temperature: 0.5,
+            top_p: 0.7,
+            seed: 10,
+            top_k: 50
+        }),
+    };
+
     try {
-        jwt.verify(token, process.env.JWT_SECRET);
-        next();
+        const response = await fetch(LlAMA_API, options);
+        const result = await response.json();
+        let description = result.choices[0].text
+        return description
     } catch (error) {
-        return res.status(401).json({
-            error: 'User session expired, please logout and login again!'
-        });
+        console.error('Error:', error);
     }
-};
 
-router.post('/saveMetadata', authenticateToken, async (req, res) => {
-    let table_name = '';
+}
+router.post('/saveMetadata', async (req, res) => {
     try {
         const metadata = req.body;
-        table_name = 'metadata_' + metadata.tableName.toLowerCase();
-        const metadataSql = `USE ${process.env.MYSQL_DATABASE};\n` +
-            `DROP TABLE IF EXISTS ${table_name};\n` +
-            `CREATE TABLE ${table_name} (Column_Name VARCHAR(50) NOT NULL, Description VARCHAR(200), PRIMARY KEY (Column_Name));\n`;
+        const table_name = `metadata_${metadata.tableName.toLowerCase()}`;
 
-        const valuesSql = metadata.tableData.map(column => {
-            return `('${column.Column}', '${column.Desc}')`;
-        }).join(', ');
+        const metadataSql = `
+            USE ${MYSQL_DATABASE};
+            DROP TABLE IF EXISTS ${table_name};
+            CREATE TABLE ${table_name} (Column_Name VARCHAR(50) NOT NULL, Description VARCHAR(200), PRIMARY KEY (Column_Name));
+        `;
 
+        const valuesSql = metadata.tableData
+            .map(column => `(${connection.escape(column.Column)}, ${connection.escape(column.Desc)})`)
+            .join(', ');
         const insertSql = `INSERT INTO ${table_name} (Column_Name, Description) VALUES ${valuesSql} ON DUPLICATE KEY UPDATE Description = VALUES(Description);`;
-        const sql = `${metadataSql}${insertSql}`;
+
+        const sql = `${metadataSql} ${insertSql}`;
         await connection.query(sql);
 
-        const descriptionQuery = `SELECT * FROM ${process.env.MYSQL_DATABASE}.${table_name};`;
+        const descriptionQuery = `SELECT * FROM ${MYSQL_DATABASE}.${table_name};`;
         const [rows] = await connection.query(descriptionQuery);
 
-        let descriptionString = "In the " + table_name + " table, ";
-        console.log(rows)
-        rows.forEach(column => {
-            if (column.Description.trim() !== 'undefined') {
-                const columnName = column.Column_Name;
-                const description = column.Description;
-                descriptionString += `the '${columnName}' column means '${description}', `;
-            }
-        });
+        const descriptionString = rows
+            .filter(column => column.Description.trim() !== 'undefined')
+            .map(column => `the '${column.Column_Name}' column means ${column.Description}`)
+            .join(', ');
 
-        console.log(descriptionString)
-        const result = await chain.call({ input: descriptionString });
-        console.log(result);
-        return res.status(200).json({ response: result.response });
-        // return res.status(200).json({ success: true })
+
+        const metadata_descirption = `<<SYS>>In the ${table_name} table, ${descriptionString}<<SYS>>`
+        historyModule.updateHistory(metadata_descirption)
+        return res.status(200).json({ success: true });
 
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
-
-router.post("/getCoordinates", authenticateToken, async (req, res) => {
+router.post("/getCoordinates", async (req, res) => {
 
     try {
         const { cityName } = req.body;
-        console.log(req.body)
         if (!cityName) {
             res.status(400).json({ error: 'City name is required in the request body' });
             return;
@@ -118,25 +135,23 @@ router.post("/getCoordinates", authenticateToken, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-router.post('/truncate', authenticateToken, async (req, res) => {
-    console.log(process.env.MYSQL_DATABASE)
+router.post('/truncate', async (req, res) => {
     try {
 
-        await connection.query(`USE ${process.env.MYSQL_DATABASE};`);
+        await connection.query(`USE ${MYSQL_DATABASE};`);
         await connection.query('SET FOREIGN_KEY_CHECKS=0');
         let sql = `SELECT CONCAT('DROP TABLE ', TABLE_NAME, ';')
             FROM INFORMATION_SCHEMA.tables
-            WHERE TABLE_SCHEMA = '${process.env.MYSQL_DATABASE}';`;
+            WHERE TABLE_SCHEMA = '${MYSQL_DATABASE}';`;
 
         let [rows] = await connection.query(sql);
-        console.log(rows)
         for (const item of rows) {
             for (const sql of Object.values(item)) {
-                await connection.query(`use ${process.env.MYSQL_DATABASE};${sql}`);
+                await connection.query(`use ${MYSQL_DATABASE};${sql}`);
             }
         }
         await connection.query('SET FOREIGN_KEY_CHECKS=1');
+        historyModule.emptyHistory()
         return res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
@@ -144,67 +159,39 @@ router.post('/truncate', authenticateToken, async (req, res) => {
     }
 
 });
-
-
-router.post('/getSchema', authenticateToken, async (req, res) => {
+router.post('/getSchema', async (req, res) => {
     let schema = req.body.schema;
     try {
-        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema.toLowerCase()}"`;
+        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${MYSQL_DATABASE}' and table_name="${schema.toLowerCase()}"`;
         const [rows] = await connection.query(columnQuery);
-        // console.log(rows);
-
         const [data] = await connection.query(`SELECT * from ${schema} LIMIT 3;`)
-        console.log(data);
         const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
-        //   console.log(formattedStrings)
         const columnNames = rows.map((item) => item.COLUMN_NAME).join(",");
-        // console.log(columnNames);
-        const prompt = `Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.`;
+        //const prompt = `Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.`;
+        const prompt = `[INST]<<SYS>>Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.<</SYS>> \n1. Please do not include sample value\n2. Do not include data type\n3. After column name always put colon : in the result.\n4. The exact column name and every column should be present in the result.\n5. Include the column names for which you could not generate any description.[/INST]`;
+        console.log(prompt)
 
-        const llm = new OpenAI({
-            model: "text-davinci-003",
-            temperature: 0,
-            max_tokens: 150,
-            top_p: 1.0,
-            frequency_penalty: 0.0,
-            presence_penalty: 0.0,
-        });
-        let descriptions = await llm.call(prompt);
+        let descriptions = await getResult(prompt)
         descriptions = descriptions.trim().split("\n");
+        console.log("###############")
         console.log(descriptions)
+        const columnObject = extractColumnInfo(descriptions);
 
-        for (let i = 0; i < rows.length - 1; i++) {
-            rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
-        }
-
-        console.log(rows);
-
+        rows.forEach(obj => {
+            obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
+        });
         return res.status(200).json(rows);
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
-
-/*
-router.post('/getSchema', authenticateToken, async (req, res) => {
-    let schema = req.body.schema;
-    try {
-        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema}"`;
-        const [rows] = await connection.query(columnQuery);
-        return res.status(200).json(rows);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'An error occurred' });
-    }
-});
-*/
-
-
-function flattenObjectValues(obj) {
+const flattenObjectValues = (obj) => {
     return Object.values(obj).map(val => {
         if (typeof val === 'object' && !Array.isArray(val)) {
             return flattenObjectValues(val);
+        } else {
+            return val;
         }
     }).join(',');
 }

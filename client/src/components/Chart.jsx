@@ -57,7 +57,8 @@ const Chart = ({ data }) => {
   const mapContainerRef = useRef(null);
 
   const renderMap = () => {
-    if (!data || data.length === 0 || !data.some(item => item.location)) {
+
+    if (!data || data.length === 0 || !data.some(item => item.location || item.Location)) {
       return null; // Don't render the map if there's no data or no 'location' property
     }
 
@@ -75,7 +76,7 @@ const Chart = ({ data }) => {
     // Append the link element to the head of the document
     document.head.appendChild(link);
     // Initialize the Leaflet map once the map container is available in the DOM
-    if (mapContainerRef.current && data.some(item => item.location)) {
+    if (mapContainerRef.current && data.some(item => item.location || item.Location)) {
       if (!mapContainerRef.current._leaflet_id) {
         // Create the Leaflet map
         const map = L.map(mapContainerRef.current).setView([48.8566, 2.3522], 3); // Set initial coordinates and zoom level
@@ -89,14 +90,14 @@ const Chart = ({ data }) => {
         // Loop through your data and add markers for city names
         data.forEach(async (item) => {
           try {
-            if (item.location) {
+            if (item.location || item.Location) {
               // Get latitude and longitude using the getCityCoordinates function
-              const { latitude, longitude } = await getCityCoordinates(item.location);
+              const { latitude, longitude } = await getCityCoordinates(item.location || item.Location);
 
               // Add a marker for the city with its latitude and longitude
               if (latitude && longitude) {
                 const cityMarker = L.marker([latitude, longitude]).addTo(map);
-                cityMarker.bindPopup(item.location);
+                cityMarker.bindPopup(item.location || item.Location);
               }
             }
             // Display city name on marker click
@@ -119,7 +120,7 @@ const Chart = ({ data }) => {
 
     // Generate charts for each property dynamically
     Object.keys(data[0]).forEach((property) => {
-      if (property !== "location") {
+      if (property !== "location" || property !== "Location") {
         const chartData = generateChartData(property);
 
         const chartComponent = generateChartComponent(property, chartData);

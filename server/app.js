@@ -3,6 +3,7 @@ require("dotenv").config();
 const express = require("express");
 const bodyParser = require('body-parser')
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const signupRouter = require("./routes/signup");
 const loginRouter = require("./routes/login");
 const uploadRouter = require("./routes/upload")
@@ -10,7 +11,14 @@ const openaiRouter = require('./routes/openai')
 const miscRouter = require('./routes/misc')
 const db = require("./config/db");
 
+const { dbConnect } = require('./config/db');
+const historyModule = require('./config/memory');
+const { MYSQL_DATABASE, LlAMA_API } = process.env;
+
 const app = express();
+
+
+
 //const port = process.env["NODE_ENV"] === "development" ? 4000 : 80;
 const port = 4000;
 //console.log(process.env)
@@ -27,10 +35,28 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: 'Not Authorized' });
+  }
 
-// API routes
+  const token = authHeader.split(' ')[1];
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      error: 'User session expired, please logout and login again!'
+    });
+  }
+};
 app.use("/signup", signupRouter);
 app.use("/login", loginRouter);
+//app.use(authenticateToken);
+
+// API routes
+
 app.use("/upload", uploadRouter);
 app.use("/openai", openaiRouter);
 app.use("/misc", miscRouter)

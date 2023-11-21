@@ -1,74 +1,136 @@
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const { dbConnect } = require('../config/db');
-const createChain = require('../config/conversationChain');
-const chain = createChain()
-const { JWT_SECRET, MYSQL_DATABASE } = process.env;
+const { MYSQL_DATABASE, LlAMA_API } = process.env;
 const connection = dbConnect();
+
+const templateMe = (template, replacement) => {
+    var regex = /{{(.*?)}}/g;
+    return template.replace(regex, (match, capture) => {
+        return replacement || "";
+    });
+}
+
+const extractCode = (inputString) => {
+    const regex = /```([\s\S]+?)```/g;
+    const matches = inputString.match(regex);
+
+    if (matches && matches.length > 0) {
+        // Extracted code is between the first pair of triple backticks
+        const extractedCode = matches[0].replace(/```/g, '').replace(/sql/g, '');
+        return extractedCode.trim();
+    } else {
+        return null;
+    }
+}
+
+const getResult = async (question) => {
+    const options = {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            prompt: question,
+            max_tokens: 1024,
+            temperature: 0.9,
+            top_p: 0.7,
+            seed: 10,
+            top_k: 50
+        }),
+    };
+
+    try {
+        const response = await fetch(LlAMA_API, options);
+        const result = await response.json();
+        console.log(result)
+
+        let sqlQuery = extractCode(result.choices[0].text)
+        return sqlQuery.split("\n").join(" ")
+    } catch (error) {
+        console.error('Error:', error);
+    }
+
+}
+
+const generateMetadataSchema = async (schema) => {
+    return schema.filter(column => column.Description.trim() !== 'undefined')
+        .map(column => `the '${column.Column_Name}' column means ${column.Description}`)
+        .join(', ');
+}
+
+const generateTableSchema = (schema) => {
+    return `${schema.map(item => {
+        if (item.Field) {
+            const keyField = item.Key ? `,Key:${item.Key}` : '';
+            return `Field:${item.Field},Type:${item.Type}${keyField}`;
+        }
+
+    }).join(';')}`;
+}
+const generatePrompt = async (schema) => {
+    let table_name = schema[schema.length - 1].tableName;
+    if (table_name.startsWith('metadata_')) {
+        let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+        [rows] = await connection.query(`select * from ${table_name};`);
+        let metadata_descirption = await generateMetadataSchema(rows)
+        return `<<SYS>>In the '${table_name}' table, ${metadata_descirption}<</SYS>>`;
+    }
+    return `<<SYS>>Schema definiton of '${table_name}' table: ${generateTableSchema(schema)}<</SYS>>`;
+}
 
 
 router.post('/', async (req, res) => {
+    let history = [];
+    let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+    [rows] = await connection.query("show tables;");
+
+    let tableList = rows.map(table => table.Tables_in_demonstrator);
+    for (const name of tableList) {
+        [rows] = await connection.query(`DESCRIBE ${name};`);
+        rows.push({
+            tableName: name
+        });
+        let desc = await generatePrompt(rows);
+        history.push(desc);
+    }
+
+    let { query } = req.body;
+    let template = `[INST]${history.join("\n")}\n1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n2. Exclude results from tables starting with 'metadata_' in the query output.\n3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n6. Don't use any metadata tables in the sql query output.\n7. Provide an SQL query code to '{{question}}'\n[/INST]`;
+    let prompt = templateMe(template, query);
+    console.log(prompt);
+
+    let sqlQuery;
+    let resultQuery;
+
     try {
-        const { query } = req.body;
-        const { authorization: authHeader } = req.headers;
-
-        if (!authHeader) {
-            return res.status(401).json({ error: 'Not Authorized' });
-        }
-
-        const token = authHeader.split(' ')[1];
-        let user;
-
-        try {
-            user = jwt.verify(token, JWT_SECRET);
-            if (user.userEmail) {
-                let sqlQuery = `SELECT COUNT(*) as tableCount FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE}';`;
-                let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
-                [rows] = await connection.query(sqlQuery);
-                if (rows[0].tableCount == 0) {
-                    return res.status(200).json({
-                        queryResult: false,
-                        query: 'Please upload a CSV file first.'
-                    });
-                }
-            }
-        } catch (error) {
-            return res.status(401).json({
-                queryResult: false,
-                query: 'User session expired, please logout and login again!'
-            });
-        }
-        console.log("Query...........")
-        console.log(query)
-        let result = await chain.call({ input: query + '\nPlease only return the valid sql part of the answer and remember the actual sql table names. Please do not use Metadata tables for sql query.\n' });
-        console.log(result)
-
-        /*
-        let sqlQuery = `SELECT * FROM Employee WHERE Salary > 50000;`;
-        let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+        sqlQuery = `SELECT COUNT(*) as tableCount FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE}';`;
+        [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
         [rows] = await connection.query(sqlQuery);
-        return res.status(200).json({
-            queryResult: rows,
-            query: sqlQuery
-        });*/
 
-        if (result.response) {
-            let sqlQuery = result.response.trim();
-            console.log(sqlQuery)
-            sqlQuery = sqlQuery.split(':')[1].trim()
-            let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
-            [rows] = await connection.query(sqlQuery);
-            res.status(200).json({
+        if (rows[0].tableCount == 0) {
+            return res.status(200).json({
+                queryResult: false,
+                query: 'Please upload a CSV file first.'
+            });
+        } else {
+            resultQuery = await getResult(prompt);
+            console.log("###################");
+            console.log(resultQuery);
+            [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+            [rows] = await connection.query(resultQuery);
+            return res.status(200).json({
                 queryResult: rows,
-                query: sqlQuery
+                query: resultQuery
             });
         }
     } catch (error) {
+        console.log(error);
         res.status(200).json({
             queryResult: false,
-            query: sqlQuery
+            query: resultQuery
         });
     }
 });
+
 module.exports = router;
