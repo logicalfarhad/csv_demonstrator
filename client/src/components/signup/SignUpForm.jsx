@@ -3,7 +3,7 @@ import "./signupform.css";
 import { useNavigate } from "react-router-dom";
 import SvgComponent from "../SvgComponent";
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
-const SignupForm = () => {
+const SignupForm =  ({ onSignupSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -24,7 +24,8 @@ const SignupForm = () => {
 
       const data = await response.json();
       if (response.status === 201) {
-        navigate("/login");
+        onSignupSuccess(true);
+        // navigate("/login");
       } else {
         setErrorMessage(data.message);
       }

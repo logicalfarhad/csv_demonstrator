@@ -347,7 +347,7 @@ nav svg {
 
 .loginContainerContent {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   flex-direction: column;
   height: 100%;

@@ -1,26 +1,26 @@
-Title,Genre,PublicationYear
-Pride and Prejudice,Romance,1813
-Sense and Sensibility,Romance,1811
-Emma,Romance,1815
-Mansfield Park,Romance,1814
-Persuasion,Romance,1817
-Romeo and Juliet,Tragedy,1597
-Hamlet,Tragedy,1603
-Macbeth,Tragedy,1606
-Othello,Tragedy,1604
-A Midsummer Night's Dream,Comedy,1600
-Murder on the Orient Express,Mystery,1934
-Death on the Nile,Mystery,1937
-The Murder of Roger Ackroyd,Mystery,1926
-And Then There Were None,Mystery,1939
-The ABC Murders,Mystery,1936
-Harry Potter and the Sorcerer's Stone,Fantasy,1997
-Harry Potter and the Chamber of Secrets,Fantasy,1998
-Harry Potter and the Prisoner of Azkaban,Fantasy,1999
-Harry Potter and the Goblet of Fire,Fantasy,2000
-Harry Potter and the Order of the Phoenix,Fantasy,2003
-1984,Dystopian,1949
-Animal Farm,Allegory,1945
-Down and Out in Paris and London,Memoir,1933
-Homage to Catalonia,Non-fiction,1938
-Burmese Days,Novel,1934
+Authors_FK,Title,Genre,PublicationYear
+Jane Austen,Pride and Prejudice,Romance,1813
+Jane Austen,Sense and Sensibility,Romance,1811
+Jane Austen,Emma,Romance,1815
+Jane Austen,Mansfield Park,Romance,1814
+Jane Austen,Persuasion,Romance,1817
+William Shakespeare,Romeo and Juliet,Tragedy,1597
+William Shakespeare,Hamlet,Tragedy,1603
+William Shakespeare,Macbeth,Tragedy,1606
+William Shakespeare,Othello,Tragedy,1604
+William Shakespeare,A Midsummer Night's Dream,Comedy,1600
+Agatha Christie,Murder on the Orient Express,Mystery,1934
+Agatha Christie,Death on the Nile,Mystery,1937
+Agatha Christie,The Murder of Roger Ackroyd,Mystery,1926
+Agatha Christie,And Then There Were None,Mystery,1939
+Agatha Christie,The ABC Murders,Mystery,1936
+J.K. Rowling,Harry Potter and the Sorcerer's Stone,Fantasy,1997
+J.K. Rowling,Harry Potter and the Chamber of Secrets,Fantasy,1998
+J.K. Rowling,Harry Potter and the Prisoner of Azkaban,Fantasy,1999
+J.K. Rowling,Harry Potter and the Goblet of Fire,Fantasy,2000
+J.K. Rowling,Harry Potter and the Order of the Phoenix,Fantasy,2003
+George Orwell,1984,Dystopian,1949
+George Orwell,Animal Farm,Allegory,1945
+George Orwell,Down and Out in Paris and London,Memoir,1933
+George Orwell,Homage to Catalonia,Non-fiction,1938
+George Orwell,Burmese Days,Novel,1934
