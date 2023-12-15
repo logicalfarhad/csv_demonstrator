@@ -1,0 +1,30 @@
+.About-section1{
+    /* margin-top:-15%; */
+    padding: 5%;
+    text-align: left;
+}
+.About-section1 h4{
+    color: white;
+    font-weight: bold;
+    font-size: 30px;
+}
+.About-section1 .subheading{
+    color: white;
+    font-size: 20px;
+}
+
+.About-section1 .text-muted{
+    color: white !important;
+}
+
+.About-section1 .row
+{
+    margin-top: 10%;
+}
+/* .About-img 
+{
+    text-align: center;
+} */
+.About-img img{
+    width: 100%;
+}

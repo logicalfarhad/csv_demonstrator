@@ -6,6 +6,8 @@ import LoginForm from "./components/login/LoginForm";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
+import AboutSection from "./components/AboutSection/AboutSection";
+
 function App() {
   const { token } = useContext(AuthContext);
 
@@ -25,6 +27,7 @@ function App() {
             </RequireAuth>
           }
         />
+        <Route path="/introduction" element={<AboutSection />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/login" element={<LoginForm />} />
       </Routes>
