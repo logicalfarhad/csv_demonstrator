@@ -183,19 +183,20 @@ const Chart = ({ data }) => {
     }
 
     return (
-      <div key={property}>
+      <div key={property}  className={property}>
         <h3>{property} Chart</h3>
-        <ChartComponent data={chartData} options={chartOptions} />
+        <ChartComponent data={chartData} options={chartOptions} className={property} />
+        <p>{property}</p>
       </div>
     );
   };
 
   return (
-    <div>
+    <>
       {/* Render the charts */}
       {renderCharts()}
       {renderMap()}
-    </div>
+    </>
   );
 };
 

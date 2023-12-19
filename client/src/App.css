@@ -98,7 +98,7 @@ nav {
   padding: 0;
   text-indent: 0;
   white-space: pre-wrap;
-  position: relative;
+  /* position: relative; */
   top: -45px;
 }
 

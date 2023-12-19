@@ -1,16 +1,22 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+import React, { useRef, useState, useEffect } from 'react';
+import html2canvas from 'html2canvas';
+
 
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 
 import Chart from "./Chart"
+import PdfDocument from "./PdfDocument" 
 
 
-const BotResponse = ({ response, queryResponse, chatLogRef }) => {
+const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
   const [botResoponse, setBotResponse] = useState("");
   const [isPrinting, setIsPrinting] = useState(true);
   const [isButtonVisible, setIsButtonVisible] = useState(false);
+
+  const [chartImages, setChartImages] = useState([]);
+  const chartsContainerRef = useRef(null);
+
 
   const [show, setShow] = useState(false);
 
@@ -50,6 +56,60 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
     }, 30);
     return () => clearInterval(msg); // clear interval on component unmount
   }, [chatLogRef, response, isPrinting]);
+
+
+  const generateImages = async () => {
+    setChartImages([]);
+    if (chartsContainerRef.current) {
+      const chartDivs = chartsContainerRef.current.querySelectorAll('.charts > div');
+      
+      const promises = Array.from(chartDivs).map(async (div, index) => {
+        const titleElement = div.querySelector('h3');
+        const descriptionElement = div.querySelector('p');
+        const canvasElement = div.querySelector('canvas');
+
+
+        const chartData = {
+          id: index,
+          dataUrl: null,
+          title: titleElement ? titleElement.textContent : '',
+          description: descriptionElement ? descriptionElement.textContent : '',
+        };
+
+        /*Commenting this out for now because route is not there and it still using openAI
+        Implement route in llama2 and then use it*/
+        
+        // let field = descriptionElement ? descriptionElement.textContent : '';
+        // if(field !== ''){
+        //   let prompt = `Based on this sql query response and data ${JSON.stringify(queryResponse)}, Generate one line description for field ${field}`
+        //   // console.log(prompt);
+        //   try {
+        //     const response = await fetch(`http://localhost:4000/openai?prompt=${prompt}`, {
+        //       method: "GET",
+        //       headers: { "Content-Type": "application/json" },
+        //     });
+        //     const data = await response.json();
+        //     // console.log(data.result);
+        //     chartData['description'] = data.result;
+        //   } catch (err) {
+        //     console.log(err);
+        //   }
+        // }
+
+        
+        const canvas = await html2canvas(canvasElement);
+        const imageDataUrl = canvas.toDataURL('image/png');
+        chartData.dataUrl = imageDataUrl;
+        
+        return chartData;
+      });
+  
+      const chartDataArray = await Promise.all(promises);
+      setChartImages(chartDataArray);
+    }
+  };
+
+
 
   const stopPrinting = () => setIsPrinting(!isPrinting);
 
@@ -102,7 +162,7 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
               className="visualization query-response"
               onClick={handleShowVisualization}
             >
-              Show Visualization
+              Show Visualization/Report
             </button>
           )}
 
@@ -122,10 +182,34 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
 
           <Modal show={showVisualization} onHide={handleCloseVisualization}>
             <Modal.Header closeButton>
-              <Modal.Title>Visualization</Modal.Title>
+              <Modal.Title>Visualization & Report</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <Chart data={queryResponse} />
+            <PdfDocument
+                aiResponse={botResoponse}
+                queryResp={queryResponse}
+                chartsImg={chartImages}
+                question={question}
+              />
+
+              <Button onClick={generateImages}>
+                Generate Pdf with visualizations
+              </Button>
+
+              {/* <PDFDownloadLink document={<PdfDocument aiResponse={botResoponse} queryResp={queryResponse} question={question} chartsImg={chartImages} />} fileName="somename.pdf">
+      {({ blob, url, loading, error }) =>
+        loading ? 'Loading document...' : 'Download now!'
+      }
+    </PDFDownloadLink> */}
+
+              <br />
+              <br />
+              <br />
+              <br />
+              <div className="charts" ref={chartsContainerRef}>
+                <Chart data={queryResponse} />
+              </div>
+
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleCloseVisualization}>

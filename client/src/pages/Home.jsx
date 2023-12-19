@@ -211,6 +211,7 @@ const Home = () => {
                             response={chat.botMessage}
                             chatLogRef={chatLogRef}
                             queryResponse={chat.queryResult}
+                            question={chat.chatPrompt}
                           />
                         </div>
                       ) : err ? (
