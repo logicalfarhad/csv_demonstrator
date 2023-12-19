@@ -7,6 +7,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 import AboutSection from "./components/AboutSection/AboutSection";
+import NavbarMenu from "./components/NavbarMenu/NavbarMenu";
 
 function App() {
   const { token } = useContext(AuthContext);
@@ -27,6 +28,7 @@ function App() {
             </RequireAuth>
           }
         />
+        <Route path="/navbar" element={<NavbarMenu />} />
         <Route path="/introduction" element={<AboutSection />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/login" element={<LoginForm />} />

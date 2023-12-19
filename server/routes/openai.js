@@ -3,6 +3,7 @@ const router = express.Router();
 const { dbConnect } = require('../config/db');
 const { MYSQL_DATABASE, LlAMA_API } = process.env;
 const connection = dbConnect();
+const fetch = require("node-fetch");
 
 const templateMe = (template, replacement) => {
     var regex = /{{(.*?)}}/g;
