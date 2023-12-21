@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Table } from 'react-bootstrap';
+import { Modal, Button, Form, Table, Row, Col } from 'react-bootstrap';
 import { useDropzone } from 'react-dropzone';
-import { Gear, X, Save } from 'react-bootstrap-icons';
+import { Gear, X, Save, PlusCircle, Plus } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -234,13 +234,14 @@ const CSVUpload = () => {
         console.log(error);
       })
       .finally(() => {
-        setShowMetadataModal(true);
+        // setShowMetadataModal(true);
       });
   };
 
 
   const handleCloseMetadataModal = () => {
     setShowMetadataModal(false);
+    setTableData([]);
   };
   const handleCloseMetadataConfigModal = () => {
     setIsMetadataModalOpen(false);
@@ -296,6 +297,7 @@ const CSVUpload = () => {
         toast.success('Column description added!', {
           position: toast.POSITION.TOP_RIGHT,
         });
+        setTableData([]);  
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -332,13 +334,161 @@ const CSVUpload = () => {
   };
 
   return (
-    <>
-      <div
-        className="sideMenuButton"
-        onClick={handleShow}>
+    <div className="data-upload-section">
+      <div className="sideMenuButton" onClick={handleShow}>
         <span>+</span>
         Upload CSV
       </div>
+      <Row>
+        <Col md={6} xs={12}>
+          <h4>Upload Data</h4>
+          <p className="text-left">
+            Lorem Ipsum is simply dummy text of the printing and typesetting
+            industry. Lorem Ipsum has been the industry's standard dummy text
+            ever since the 1500s, when an unknown printer took a galley of type
+            and scrambled it to make a type specimen book. It has survived not
+            only five centuries, but also the leap into electronic typesetting,
+            remaining essentially unchanged. It was popularised in the 1960s
+            with the release of Letraset sheets containing Lorem Ipsum passages,
+            and more recently with desktop publishing software like Aldus
+            PageMaker including versions of Lorem Ipsum.
+          </p>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col md={6} xs={12}>
+          <Form>
+            <Col md={4} xs={12}>
+              <div {...getRootProps()} style={dropzoneStyles}>
+                <input {...getInputProps()} />
+                {isDragActive ? (
+                  <p>Drop the CSV file(s) here...</p>
+                ) : (
+                  <>
+                    <PlusCircle style={{ fontSize: "45px" }} />
+                    <p>Drag 'n' drop CSV file(s) here, or click to select</p>
+                  </>
+                )}
+              </div>
+            </Col>
+
+            {selectedFiles.length > 0 && (
+              <div>
+                <br />
+                <hr style={{ borderTop: "5px solid grey" }} />
+                <br />
+                <h5>Selected Files:</h5>
+                <Table striped bordered hover>
+                  <thead>
+                    <tr>
+                      <th>File Name</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedFiles.map((file, index) => (
+                      <tr key={index}>
+                        <td>{file.name}</td>
+                        <td>
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleUpload(file)}
+                          >
+                            <Save size={14} />
+                          </Button>
+
+                          <Button
+                            variant="info"
+                            size="sm"
+                            className="me-2"
+                            onClick={() => handleConfigureMetadata(file)}
+                          >
+                            <Gear size={14} />
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleRemoveFile(index)}
+                          >
+                            <X size={14} />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </Form>
+        </Col>
+      </Row>
+      <Row>
+
+        <Col md={6} xs={12}>
+        <button className="button-primary mt-2" onClick={handleCheckMetaData}>
+            Check Metadata
+          </button>
+          <br />
+          <hr style={{ borderTop: "5px solid grey" }} />
+          <br />
+        </Col>
+      </Row>
+
+      {tableData.length > 0 && (
+        <>
+          <Row>
+            <Col md={6} xs={12}>
+              <h4>Metadata configuration</h4>
+              <Table striped bordered hover>
+                <thead>
+                  <tr>
+                    <th>Columns</th>
+                    <th>Desc</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableData.map((data, index) => (
+                    <tr key={index}>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          disabled
+                          value={data.Column}
+                          onChange={(event) => {
+                            const newData = [...tableData];
+                            newData[index].Column = event.target.value;
+                            setTableData(newData);
+                          }}
+                        />
+                      </td>
+                      <td>
+                        <Form.Control
+                          type="text"
+                          value={data.Desc}
+                          onChange={(event) => {
+                            const newData = [...tableData];
+                            newData[index].Desc = event.target.value;
+                            setTableData(newData);
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </Table>
+              <button className="button-primary" style={{margin:'2px'}} onClick={handleMetaDataSave}>
+                Save
+              </button>
+              <button className="button-secondary" style={{margin:'2px'}} onClick={handleCloseMetadataModal}>
+                Close
+              </button>
+            </Col>
+          </Row>
+        </>
+      )}
 
       <Modal show={showModal} size="lg" onHide={handleClose}>
         <Modal.Header closeButton>
@@ -412,10 +562,7 @@ const CSVUpload = () => {
           </Button>
           */}
           {/* Check Metadata button with disabled attribute */}
-          <Button
-            variant="primary"
-            onClick={handleCheckMetaData}
-          >
+          <Button variant="primary" onClick={handleCheckMetaData}>
             Check Metadata
           </Button>
           <Button variant="secondary" onClick={handleClose}>
@@ -550,12 +697,10 @@ const CSVUpload = () => {
             <p>There are no common column names.</p>
           )}
         </Modal.Body>
-        <Modal.Footer>
-          {renderTableModalFooter()}
-        </Modal.Footer>
+        <Modal.Footer>{renderTableModalFooter()}</Modal.Footer>
       </Modal>
       <ToastContainer autoClose={500} />
-    </>
+    </div>
   );
 };
 

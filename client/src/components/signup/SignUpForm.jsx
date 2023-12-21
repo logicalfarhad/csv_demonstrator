@@ -7,7 +7,7 @@ const SignupForm =  ({ onSignupSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
@@ -121,7 +121,7 @@ const SignupForm =  ({ onSignupSuccess }) => {
             )}
           </i>
         </div>
-        <button type="submit">Continue</button>
+        <button type="submit" className="button-primary">Continue</button>
         {errorMessage.trim() !== " " && <span>{errorMessage}</span>}
       </form>
     </div>

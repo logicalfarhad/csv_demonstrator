@@ -15,7 +15,7 @@ const templateMe = (template, replacement) => {
 const extractCode = (inputString) => {
     const regex = /```([\s\S]+?)```/g;
     const matches = inputString.match(regex);
-
+    
     if (matches && matches.length > 0) {
         // Extracted code is between the first pair of triple backticks
         const extractedCode = matches[0].replace(/```/g, '').replace(/sql/g, '');
@@ -97,7 +97,7 @@ router.post('/', async (req, res) => {
     }
 
     let { query } = req.body;
-    let template = `[INST]${history.join("\n")}\n1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n2. Exclude results from tables starting with 'metadata_' in the query output.\n3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n6. Don't use any metadata tables in the sql query output.\n7. Provide an SQL query code to '{{question}}'\n[/INST]`;
+    let template = `[INST]${history.join("\n")}\n1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n2. Exclude results from tables starting with 'metadata_' in the query output.\n3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n6. Don't use any metadata tables in the sql query output.\n7. Provide only valid SQL query code to '{{question}}' in your response\n[/INST]`;
     let prompt = templateMe(template, query);
     console.log(prompt);
 

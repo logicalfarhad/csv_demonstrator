@@ -1,0 +1,23 @@
+.topHeader{
+    padding-top: 5%;
+    padding-left:5%;
+    padding-right:5%;
+    background-color: white !important;
+}
+
+.topHeaderContainer{
+    padding: 0;
+}
+
+
+.nav-link.active{
+    border-bottom: 3px solid grey;
+}
+
+
+@media (min-width: 992px){  
+.navbar-expand-lg .navbar-nav .nav-link {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+}

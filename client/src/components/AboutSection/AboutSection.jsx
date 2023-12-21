@@ -15,7 +15,9 @@ const AboutSection = () => {
         {/* <Col md={4}>
         </Col> */}
       </Row>
-
+      <br />
+      <hr style={{borderTop: '5px solid grey'}}/>
+      <br />
       <Row className='align-items-center'>
         <Col md={6}>
           <h4 className="subheading">
@@ -34,7 +36,9 @@ const AboutSection = () => {
           />
         </Col>
       </Row>
-      
+      <br />
+      <hr style={{borderTop: '5px solid grey'}}/>
+      <br />
       <Row className='align-items-center'>
         <Col md={6} className="About-img">
           <Image

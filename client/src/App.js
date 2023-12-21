@@ -6,8 +6,11 @@ import LoginForm from "./components/login/LoginForm";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
-import AboutSection from "./components/AboutSection/AboutSection";
+
 import NavbarMenu from "./components/NavbarMenu/NavbarMenu";
+import DataUploading from "./pages/DataUploading.jsx/DataUploading";
+import Prompting from "./pages/Prompting/Prompting";
+import Introduction from "./pages/Introduction/Introduction";
 
 function App() {
   const { token } = useContext(AuthContext);
@@ -24,12 +27,15 @@ function App() {
           path="/"
           element={
             <RequireAuth>
-              <Home />
+              {/* <Home /> */}
+              <Introduction />
             </RequireAuth>
           }
         />
         <Route path="/navbar" element={<NavbarMenu />} />
-        <Route path="/introduction" element={<AboutSection />} />
+        <Route path="/introduction" element={<Introduction />} />
+        <Route path="/data-uploading" element={<DataUploading />} />
+        <Route path="/prompting" element={<Prompting />} />
         <Route path="/auth/login" element={<Login />} />
         <Route path="/login" element={<LoginForm />} />
       </Routes>

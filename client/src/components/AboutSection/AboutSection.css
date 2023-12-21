@@ -4,23 +4,23 @@
     text-align: left;
 }
 .About-section1 h4{
-    color: white;
+    color: var(--primary-font-color);
     font-weight: bold;
     font-size: 30px;
 }
 .About-section1 .subheading{
-    color: white;
+    color: var(--primary-font-color);
     font-size: 20px;
 }
 
 .About-section1 .text-muted{
-    color: white !important;
+    color: var(--primary-font-color) !important;
 }
 
-.About-section1 .row
+/* .About-section1 .row
 {
     margin-top: 10%;
-}
+} */
 /* .About-img 
 {
     text-align: center;

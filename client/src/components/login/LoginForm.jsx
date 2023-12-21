@@ -8,7 +8,7 @@ const LoginForm = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showLoginPassword, setShowLoginPassword] = useState(true);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   const { dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -105,7 +105,7 @@ const LoginForm = () => {
             )}
           </i>
         </div>
-        <button type="submit">Continue</button>
+        <button type="submit" className='button-primary'>Continue</button>
         {errorMessage.trim() !== " " && <span>{errorMessage}</span>}
       </form>
     </div>
