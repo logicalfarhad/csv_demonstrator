@@ -10,14 +10,25 @@ import NavbarMenu from "../../components/NavbarMenu/NavbarMenu";
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const Prompting = () => {
   const [inputPrompt, setInputPrompt] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  
   const [chatLog, setChatLog] = useState([]);
   const [err, setErr] = useState(false);
   const [responseFromAPI, setReponseFromAPI] = useState(false);
   const navigate = useNavigate();
 
   const chatLogRef = useRef(null);
+  
   const handleSubmit = (e) => {
     e.preventDefault();
+
+  // Check if the entered prompt already exists
+  if (!suggestions.includes(inputPrompt)) {
+    const updatedPrompts = [...suggestions, inputPrompt];
+    localStorage.setItem('prompts', JSON.stringify(updatedPrompts));
+    setSuggestions(updatedPrompts); // Update state with the new prompts
+  }
 
     if (!responseFromAPI) {
       if (inputPrompt.trim() !== "") {
@@ -60,6 +71,7 @@ const Prompting = () => {
     }
 
     setInputPrompt("");
+    setShowSuggestions(false);
   };
 
   useEffect(() => {
@@ -107,6 +119,13 @@ const Prompting = () => {
       isMounted = false;
     };
   }, [navigate]);
+
+
+  useEffect(() => {
+    const storedPrompts = JSON.parse(localStorage.getItem('prompts')) || [];
+    setSuggestions(storedPrompts);
+    // setShowSuggestions(true)
+  }, []);
 
   return (
     <>
@@ -171,6 +190,7 @@ const Prompting = () => {
                   </div>
                 </div>
               ))}
+              <br />
           </div>
         ) : (
           <IntroSection />
@@ -186,16 +206,20 @@ const Prompting = () => {
               rows="1"
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
+              onClick={() => setShowSuggestions(true)}
+              // onBlur={() => setShowSuggestions(false)} // Hide suggestions on blur
               autoFocus
+              placeholder=" Add new prompt"
             ></input>
             <button aria-label="form submit" type="submit">
               <svg
-                fill="#ADACBF"
-                width={15}
-                height={20}
+              style={{rotate:'60deg'}}
+                fill="#005B7F"
+                width={25}
+                // height={35}
                 viewBox="0 0 32 32"
                 xmlns="http://www.w3.org/2000/svg"
-                stroke="#212023"
+                stroke="#005B7F"
                 strokeWidth={0}
               >
                 <title>{"submit form"}</title>
@@ -205,6 +229,20 @@ const Prompting = () => {
                 />
               </svg>
             </button>
+
+      {/* Suggestions */}
+      {showSuggestions && (
+        <div className="suggestionsWrapper">
+          <div className="suggestions">
+          {suggestions.slice().reverse().map((suggest, index) => (
+  <div key={index} className="suggestion inputPrompttTextarea" onClick={() => setInputPrompt(suggest)}>
+    {suggest}
+  </div>
+))}
+          </div>
+        </div>
+      )}
+
           </div>
         </form>
       </section>

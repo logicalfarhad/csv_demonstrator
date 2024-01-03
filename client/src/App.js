@@ -7,7 +7,6 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useContext } from "react";
 import { AuthContext } from "./context/AuthContext";
 
-import NavbarMenu from "./components/NavbarMenu/NavbarMenu";
 import DataUploading from "./pages/DataUploading.jsx/DataUploading";
 import Prompting from "./pages/Prompting/Prompting";
 import Introduction from "./pages/Introduction/Introduction";
@@ -22,7 +21,7 @@ function App() {
   return (
     <div className="App">
       <Routes>
-        <Route
+      <Route
           index
           path="/"
           element={
@@ -32,10 +31,38 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route path="/navbar" element={<NavbarMenu />} />
+        <Route
+          index
+          path="/introduction"
+          element={
+            <RequireAuth>
+              {/* <Home /> */}
+              <Introduction />
+            </RequireAuth>
+          }
+        />
+        <Route
+          index
+          path="/data-uploading"
+          element={
+            <RequireAuth>
+              <DataUploading />
+            </RequireAuth>
+          }
+        />
+        <Route
+          index
+          path="/prompting"
+          element={
+            <RequireAuth>
+              <Prompting />
+            </RequireAuth>
+          }
+        />
+        {/* <Route path="/navbar" element={<NavbarMenu />} />
         <Route path="/introduction" element={<Introduction />} />
         <Route path="/data-uploading" element={<DataUploading />} />
-        <Route path="/prompting" element={<Prompting />} />
+        <Route path="/prompting" element={<Prompting />} /> */}
         <Route path="/auth/login" element={<Login />} />
         <Route path="/login" element={<LoginForm />} />
       </Routes>

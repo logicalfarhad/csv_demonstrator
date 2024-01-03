@@ -4,6 +4,7 @@ import html2canvas from 'html2canvas';
 
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import { Row, Col } from 'react-bootstrap';
 
 import Chart from "./Chart"
 import PdfDocument from "./PdfDocument" 
@@ -100,12 +101,11 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
         const canvas = await html2canvas(canvasElement);
         const imageDataUrl = canvas.toDataURL('image/png');
         chartData.dataUrl = imageDataUrl;
-        
         return chartData;
       });
   
       const chartDataArray = await Promise.all(promises);
-      setChartImages(chartDataArray);
+      setChartImages(chartDataArray); 
     }
   };
 
@@ -130,7 +130,8 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
         <>
           {!isButtonVisible && (
             <pre style={{ color: "#baf3ff" }}>
-              Since this is not a valid SQL query, response couldn't be generated from database.
+              Since this is not a valid SQL query, response couldn't be
+              generated from database.
             </pre>
           )}
         </>
@@ -166,6 +167,34 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
             </button>
           )}
 
+          {!isButtonVisible && (
+            <>
+              <Row className='response-result'>
+                <Col 
+                className='col-custom'
+                  md={7}
+                  xs={12}
+                >
+                  <pre className="pre-custom">
+                    {JSON.stringify(queryResponse, undefined, 2)}
+                  </pre>
+                </Col>
+                <Col 
+                className='col-custom'
+                  md={5}
+                  xs={12}
+                >
+                  <div
+                    className="charts-container"
+                    ref={chartsContainerRef}
+                  >
+                    <Chart data={queryResponse} />
+                  </div>
+                </Col>
+              </Row>
+            </>
+          )}
+
           <Modal show={show} onHide={handleClose}>
             <Modal.Header closeButton>
               <Modal.Title>Query Response</Modal.Title>
@@ -185,7 +214,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
               <Modal.Title>Visualization & Report</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-            <PdfDocument
+              <PdfDocument
                 aiResponse={botResoponse}
                 queryResp={queryResponse}
                 chartsImg={chartImages}
@@ -209,7 +238,6 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
               <div className="charts" ref={chartsContainerRef}>
                 <Chart data={queryResponse} />
               </div>
-
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleCloseVisualization}>

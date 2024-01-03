@@ -33,6 +33,7 @@ const NavbarMenu = () => {
         let data = await response.json();
         console.log(data)
         window.localStorage.removeItem('token');
+        window.localStorage.removeItem('prompts');
         dispatch({ type: "LOGOUT" });
         navigate("/");
 
