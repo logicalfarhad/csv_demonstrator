@@ -62,12 +62,12 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
   const generateImages = async () => {
     setChartImages([]);
     if (chartsContainerRef.current) {
-      const chartDivs = chartsContainerRef.current.querySelectorAll('.charts > div');
+      const chartDivs = chartsContainerRef.current.querySelectorAll('.charts-container > div');
       
       const promises = Array.from(chartDivs).map(async (div, index) => {
         const titleElement = div.querySelector('h3');
         const descriptionElement = div.querySelector('p');
-        const canvasElement = div.querySelector('canvas');
+        const canvasElement = div.querySelector('canvas') || div.querySelector('div');
 
 
         const chartData = {
@@ -235,9 +235,9 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
               <br />
               <br />
               <br />
-              <div className="charts" ref={chartsContainerRef}>
+              {/* <div className="charts" ref={chartsContainerRef}>
                 <Chart data={queryResponse} />
-              </div>
+              </div> */}
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleCloseVisualization}>

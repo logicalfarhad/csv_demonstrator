@@ -63,9 +63,10 @@ const Chart = ({ data }) => {
     }
 
     return (
-      <div>
+      <div className='location'>
         <h3>Location Map</h3>
         <div ref={mapContainerRef} id="leaflet-map" style={{ height: '400px', width: '100%' }}></div>
+        <p></p>
       </div>
     );
   };
