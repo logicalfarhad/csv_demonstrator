@@ -18,7 +18,7 @@ const extractCode = (inputString) => {
     
     if (matches && matches.length > 0) {
         // Extracted code is between the first pair of triple backticks
-        const extractedCode = matches[0].replace(/```/g, '').replace(/sql/g, '');
+        const extractedCode = matches[matches.length-1].replace(/```/g, '').replace(/sql/g, '');
         return extractedCode.trim();
     } else {
         return null;
@@ -34,8 +34,8 @@ const getResult = async (question) => {
         body: JSON.stringify({
             prompt: question,
             max_tokens: 1024,
-            temperature: 0.9,
-            top_p: 0.7,
+            temperature: 0.7,
+            top_p: 1.0,
             seed: 10,
             top_k: 50
         }),
