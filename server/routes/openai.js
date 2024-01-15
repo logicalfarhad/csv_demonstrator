@@ -4,6 +4,12 @@ const { dbConnect } = require('../config/db');
 const { MYSQL_DATABASE, LlAMA_API } = process.env;
 const connection = dbConnect();
 const fetch = require("node-fetch");
+const OpenAI = require("openai")
+
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
 
 const templateMe = (template, replacement) => {
     var regex = /{{(.*?)}}/g;
@@ -25,29 +31,47 @@ const extractCode = (inputString) => {
     }
 }
 
-const getResult = async (question) => {
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            prompt: question,
-            max_tokens: 1024,
-            temperature: 0.7,
-            top_p: 1.0,
-            seed: 10,
-            top_k: 50
-        }),
-    };
+const getResult = async (template,question) => {
+    console.log(template);
+    console.log(question)
+    // const options = {
+    //     method: 'POST',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //         prompt: question,
+    //         max_tokens: 1024,
+    //         temperature: 0.7,
+    //         top_p: 1.0,
+    //         seed: 10,
+    //         top_k: 50
+    //     }),
+    // };
 
     try {
-        const response = await fetch(LlAMA_API, options);
-        const result = await response.json();
-        console.log(result)
+        const response = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+              {
+                "role": "system",
+                "content": template
+              },
+              {
+                "role": "user",
+                "content": question
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 64,
+            top_p: 1,
+          });
+        // const result = await response.json();
+        console.log(response.choices[0].message)
 
-        let sqlQuery = extractCode(result.choices[0].text)
-        return sqlQuery.split("\n").join(" ")
+        return response.choices[0].message.content;
+        // let sqlQuery = extractCode(result.choices[0].text)
+        // return sqlQuery.split("\n").join(" ")
     } catch (error) {
         console.error('Error:', error);
     }
@@ -97,9 +121,10 @@ router.post('/', async (req, res) => {
     }
 
     let { query } = req.body;
-    let template = `[INST]${history.join("\n")}\n1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n2. Exclude results from tables starting with 'metadata_' in the query output.\n3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n6. Don't use any metadata tables in the sql query output.\n7. Provide only valid SQL query code to '{{question}}' in your response\n[/INST]`;
-    let prompt = templateMe(template, query);
-    console.log(prompt);
+    let template = `[INST]${history.join("\n")}\n1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n2. Exclude results from tables starting with 'metadata_' in the query output.\n3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n6. Don't use any metadata tables in the sql query output.\n[/INST]`;
+    let question = `Provide only valid SQL query code to ${query} in your response`
+    // let prompt = templateMe(template, query);
+    // console.log(prompt);
 
     let sqlQuery;
     let resultQuery;
@@ -115,7 +140,7 @@ router.post('/', async (req, res) => {
                 query: 'Please upload a CSV file first.'
             });
         } else {
-            resultQuery = await getResult(prompt);
+            resultQuery = await getResult(template,question);
             console.log("###################");
             console.log(resultQuery);
             [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
