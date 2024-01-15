@@ -6,6 +6,14 @@ const fetch = require('node-fetch')
 const connection = dbConnect();
 const { MYSQL_DATABASE, LlAMA_API } = process.env;
 const historyModule = require('../config/memory');
+const OpenAI = require("openai")
+
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+
 const extractColumnInfo = (data) => {
     const columnInfo = {
 
@@ -26,26 +34,51 @@ const extractColumnInfo = (data) => {
 }
 const getResult = async (question) => {
 
-    const options = {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            prompt: question,
-            max_tokens: 500,
-            temperature: 0.5,
-            top_p: 0.7,
-            seed: 10,
-            top_k: 50
-        }),
-    };
+    // const options = {
+    //     method: 'POST',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //     },
+    //     body: JSON.stringify({
+    //         prompt: question,
+    //         max_tokens: 500,
+    //         temperature: 0.5,
+    //         top_p: 0.7,
+    //         seed: 10,
+    //         top_k: 50
+    //     }),
+    // };
+
+
+
+    // try {
+    //     const response = await fetch(LlAMA_API, options);
+    //     const result = await response.json();
+    //     let description = result.choices[0].text
+    //     return description
+    // } catch (error) {
+    //     console.error('Error:', error);
+    // }
 
     try {
-        const response = await fetch(LlAMA_API, options);
-        const result = await response.json();
-        let description = result.choices[0].text
-        return description
+        const response = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+              {
+                "role": "system",
+                "content": question
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 500,
+            top_p: 1,
+          });
+        // const result = await response.json();
+        console.log(response.choices[0].message)
+
+        return response.choices[0].message.content;
+        // let sqlQuery = extractCode(result.choices[0].text)
+        // return sqlQuery.split("\n").join(" ")
     } catch (error) {
         console.error('Error:', error);
     }
@@ -175,11 +208,21 @@ router.post('/getSchema', async (req, res) => {
         descriptions = descriptions.trim().split("\n");
         console.log("###############")
         console.log(descriptions)
-        const columnObject = extractColumnInfo(descriptions);
+        // const columnObject = extractColumnInfo(descriptions);
 
-        rows.forEach(obj => {
-            obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
-        });
+        // rows.forEach(obj => {
+        //     obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
+        // });
+
+        for (let i = 0; i < rows.length; i++) {
+            console.log(rows[i])
+            console.log(descriptions[i])
+            rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
+        }
+
+        console.log(rows);
+
+
         return res.status(200).json(rows);
     } catch (error) {
         console.error(error);
