@@ -5,9 +5,11 @@ import html2canvas from 'html2canvas';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { Row, Col } from 'react-bootstrap';
+import { Fullscreen, FullscreenExit } from 'react-bootstrap-icons'
 
 import Chart from "./Chart"
 import PdfDocument from "./PdfDocument" 
+import ResultTable from './ResultTable';
 
 
 const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
@@ -28,6 +30,21 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
   const [showVisualization, setShowVisualization] = useState(false);
   const handleCloseVisualization = () => setShowVisualization(false);
   const handleShowVisualization = () => setShowVisualization(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+  };
+  const divStyle = {
+    width: isFullScreen && '100%', // adjust the width as needed
+    height: isFullScreen && '100%', // adjust the height as needed
+    position: isFullScreen && 'fixed',
+    zIndex: isFullScreen && '9999',
+    left: isFullScreen&& '0',
+    top: isFullScreen && '0',
+    backgroundColor: isFullScreen && 'white',
+    transition: 'all 0.5s ease', // optional: add a transition for a smooth effect
+  };
 
   useEffect(() => {
     let index = 1;
@@ -175,19 +192,26 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
                   md={7}
                   xs={12}
                 >
-                  <pre className="pre-custom">
+
+                  <ResultTable queryResponse={queryResponse}/>
+                  {/* <pre className="pre-custom">
                     {JSON.stringify(queryResponse, undefined, 2)}
-                  </pre>
+                  </pre> */}
                 </Col>
-                <Col 
-                className='col-custom'
+                <Col
+                  className='col-custom'
                   md={5}
                   xs={12}
                 >
+
                   <div
                     className="charts-container"
                     ref={chartsContainerRef}
+                    style={divStyle}
                   >
+                    <Button variant="outline-primary" onClick={toggleFullScreen} style={{ marginLeft: 'auto' }}>
+                      {isFullScreen ? <FullscreenExit /> : <Fullscreen />}
+                    </Button>
                     <Chart data={queryResponse} />
                   </div>
                 </Col>
