@@ -213,11 +213,22 @@ router.post('/getSchema', async (req, res) => {
         // rows.forEach(obj => {
         //     obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
         // });
+        console.log(rows);
 
         for (let i = 0; i < rows.length; i++) {
+            // Find the corresponding description based on COLUMN_NAME
             console.log(rows[i])
+            const matchingDescription = descriptions.find(desc => desc.startsWith(`${rows[i].COLUMN_NAME}:`));
+              // If a match is found, update the rows array
+                if (matchingDescription) {
+                rows[i].description = matchingDescription.split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
+                }
+                else{
+                    rows[i].description = 'No description available';
+                }
+            // console.log(rows[i])
             console.log(descriptions[i])
-            rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
+            // rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
         }
 
         console.log(rows);
