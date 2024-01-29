@@ -63,7 +63,7 @@ const getResult = async (template,question) => {
               }
             ],
             temperature: 0.7,
-            max_tokens: 64,
+            max_tokens: 1000,
             top_p: 1,
           });
         // const result = await response.json();
