@@ -54,22 +54,63 @@ const getCityCoordinates = async (cityName) => {
 }
 
 const Chart = ({ data }) => {
-  const mapContainerRef = useRef(null);
+    const mapContainerRef = useRef(null);
   const [selectedXAxis, setSelectedXAxis] = useState('');
   const [selectedYAxis, setSelectedYAxis] = useState('');
   const [selectedChartType, setSelectedChartType] = useState('bar');
+  const [description, setDescription] = useState('');
 
   const handleXAxisChange = (event) => {
     setSelectedXAxis(event.target.value);
-  };
+      };
 
   const handleYAxisChange = (event) => {
     setSelectedYAxis(event.target.value);
-  };
+      };
 
   const handleChartTypeChange = (event) => {
     setSelectedChartType(event.target.value);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Check if both X and Y axes are selected
+        if (selectedXAxis !== '' && selectedYAxis !== '' && data) {
+          const response = await fetch(backend+'/openai/provide-desc', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              xAxis: selectedXAxis,
+              yAxis: selectedYAxis,
+              chartType: selectedChartType,
+              data: data.slice(0, 2)
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          const desc = await response.json();
+          // Handle the API response data as needed
+          console.log(desc);
+          setDescription(desc.description)
+        }
+      } catch (error) {
+        // Handle errors
+        console.error('Error:', error.message);
+      }
+    };
+
+    fetchData();
+  }, [selectedXAxis, selectedYAxis, selectedChartType]);
+
+
+
+
 
   const renderChartOptions = () => {
     const properties = Object.keys(data[0] || {});
@@ -176,7 +217,8 @@ const Chart = ({ data }) => {
         }
         {/* <h3>{`${selectedXAxis} vs ${selectedYAxis} (${selectedChartType.toUpperCase()} Chart)`}</h3> */}
         <ChartComponent data={chartData} options={chartOptions} />
-        <p>Description</p>
+        {description && <p>{description}</p>}
+        {/* <p>Description</p> */}
       </div>
     );
   };

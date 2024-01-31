@@ -18,22 +18,26 @@ const templateMe = (template, replacement) => {
     });
 }
 
-const extractCode = (inputString) => {
+const extractCode = async (inputString) => {
     const regex = /```([\s\S]+?)```/g;
     const matches = inputString.match(regex);
     
     if (matches && matches.length > 0) {
         // Extracted code is between the first pair of triple backticks
         const extractedCode = matches[matches.length-1].replace(/```/g, '').replace(/sql/g, '');
+        console.log('ec', extractCode)
         return extractedCode.trim();
     } else {
-        return null;
+        return inputString;
     }
 }
+
+let messages = []
 
 const getResult = async (template,question) => {
     console.log(template);
     console.log(question)
+
     // const options = {
     //     method: 'POST',
     //     headers: {
@@ -63,7 +67,7 @@ const getResult = async (template,question) => {
               }
             ],
             temperature: 0.7,
-            max_tokens: 1000,
+            max_tokens: 2000,
             top_p: 1,
           });
         // const result = await response.json();
@@ -121,13 +125,20 @@ router.post('/', async (req, res) => {
     }
 
     let { query } = req.body;
-    let template = `[INST]${history.join("\n")}\n1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n2. Exclude results from tables starting with 'metadata_' in the query output.\n3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n6. Don't use any metadata tables in the sql query output.\n[/INST]`;
-    let question = `Provide only valid SQL query code to ${query} in your response`
+    let template = `[INST]${history.join("\n")}\n1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n
+    2. Exclude results from tables starting with 'metadata_' in the query output.\n
+    3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n
+    4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n
+    5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n
+    6. Don't use any metadata tables in the sql query output.\n
+    7. Provide answers in valid sql along with small description.[/INST]`;
+    let question = `${query}`
     // let prompt = templateMe(template, query);
     // console.log(prompt);
 
     let sqlQuery;
     let resultQuery;
+    let sqlQueryExtract;
 
     try {
         sqlQuery = `SELECT COUNT(*) as tableCount FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE}';`;
@@ -143,8 +154,10 @@ router.post('/', async (req, res) => {
             resultQuery = await getResult(template,question);
             console.log("###################");
             console.log(resultQuery);
+            sqlQueryExtract = await extractCode(resultQuery)
+            console.log(sqlQueryExtract);
             [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
-            [rows] = await connection.query(resultQuery);
+            [rows] = await connection.query(sqlQueryExtract);
             return res.status(200).json({
                 queryResult: rows,
                 query: resultQuery
@@ -158,5 +171,34 @@ router.post('/', async (req, res) => {
         });
     }
 });
+
+
+
+
+router.post('/provide-desc', async (req, res) => {
+    console.log(req.body)
+
+    let template = `You are an helpful ai assistant which will provide me one short sentence description from sample array of json data which I will provide and then can use provided description my chart headings.`;
+    let question = `My xAxis contains ${req.body.xAxis} , yAxis contains ${req.body.yAxis} and chart type is ${req.body.chartType}. My first 2 objects of json is ${JSON.stringify(req.body.data)}. This doesnot mean the entire json data contains these values it contains alot more data based on these keys so give me generic description`
+    // let prompt = templateMe(template, query);
+    // console.log(prompt);
+
+    let sqlQuery;
+    let resultQuery;
+
+    try {
+        resultQuery = await getResult(template,question);
+        console.log(resultQuery);
+        return res.status(200).json({
+            description: resultQuery
+        });
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({
+            queryResult: false,
+        });
+    }
+});
+
 
 module.exports = router;

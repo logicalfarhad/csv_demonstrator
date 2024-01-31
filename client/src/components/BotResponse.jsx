@@ -71,7 +71,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
           block: "end",
         });
       }
-    }, 30);
+    }, 10);
     return () => clearInterval(msg); // clear interval on component unmount
   }, [chatLogRef, response, isPrinting]);
 
