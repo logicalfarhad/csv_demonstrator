@@ -4,10 +4,10 @@ import BotResponse from "./BotResponse";
 const IntroSection = () => {
   return (
     <div id="introsection" className="">
-      <h1>
-        Introducing Demonstrator
-        <BotResponse response=" - Natural Language to SQL" />
-      </h1>
+      <h4>
+      Welcome to LLM Insight Expert. <br /> 
+        <BotResponse response=" Please ask your questions. I will translate it into a SQL-Query and provide you the needed informations" />
+      </h4>
       {/* <h2>
       </h2>
       Features:

@@ -127,6 +127,12 @@ const Prompting = () => {
     // setShowSuggestions(true)
   }, []);
 
+  const handleSuggestionClick = (suggest) => {
+    // Your logic here
+    setInputPrompt(suggest);
+    setShowSuggestions(false);
+  };
+
   return (
     <>
     <NavbarMenu />
@@ -201,6 +207,7 @@ const Prompting = () => {
             <input
               name="inputPrompt"
               id=""
+              autoComplete="off"
               className="inputPrompttTextarea"
               type="text"
               rows="1"
@@ -235,7 +242,7 @@ const Prompting = () => {
         <div className="suggestionsWrapper">
           <div className="suggestions">
           {suggestions.slice().reverse().map((suggest, index) => (
-  <div key={index} className="suggestion inputPrompttTextarea" onClick={() => setInputPrompt(suggest)}>
+  <div key={index} className="suggestion inputPrompttTextarea" onClick={() => handleSuggestionClick(suggest)}>
     {suggest}
   </div>
 ))}

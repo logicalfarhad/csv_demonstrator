@@ -44,8 +44,8 @@ const Login = () => {
               <div className="loginContainer">
                 <div className="loginContainerContent">
                   {/* <SvgComponent w={50} h={50} /> */}
-                  <h1>Welcome to Demonstrator</h1>
-                  <p>Your Ultimate AI</p>
+                  <h1>Welcome to LLM Insight Expert​</h1>
+                  <p>An intelligent assistant for ad hoc analyses</p>
                   <div className="loginButtonWrapper">
                     <Button
                       text="Log in"

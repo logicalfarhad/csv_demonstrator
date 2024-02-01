@@ -335,23 +335,15 @@ const CSVUpload = () => {
 
   return (
     <div className="data-upload-section">
-      <div className="sideMenuButton" onClick={handleShow}>
+      {/* <div className="sideMenuButton" onClick={handleShow}>
         <span>+</span>
         Upload CSV
-      </div>
+      </div> */}
       <Row>
         <Col md={6} xs={12}>
-          <h4>Upload Data</h4>
+          <h4>Step 1: Data Uploading</h4>
           <p className="text-left">
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry. Lorem Ipsum has been the industry's standard dummy text
-            ever since the 1500s, when an unknown printer took a galley of type
-            and scrambled it to make a type specimen book. It has survived not
-            only five centuries, but also the leap into electronic typesetting,
-            remaining essentially unchanged. It was popularised in the 1960s
-            with the release of Letraset sheets containing Lorem Ipsum passages,
-            and more recently with desktop publishing software like Aldus
-            PageMaker including versions of Lorem Ipsum.
+          Upload the data files in CSV format you want to interact with in natural language
           </p>
         </Col>
       </Row>

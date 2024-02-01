@@ -131,7 +131,7 @@ router.post('/', async (req, res) => {
     4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n
     5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n
     6. Don't use any metadata tables in the sql query output.\n
-    7. Provide answers in valid sql along with small description.[/INST]`;
+    7. Provide answers in valid sql \`\`\`sql \`\`\` along with small description.[/INST]`;
     let question = `${query}`
     // let prompt = templateMe(template, query);
     // console.log(prompt);
