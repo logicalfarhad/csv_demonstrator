@@ -118,8 +118,16 @@ router.post("/", async (req, res) => {
         }
 
         const csvFile = req.files.csv;
-        tableName = csvFile.name.split('.')[0].toLowerCase();
+                tableName = csvFile.name.split('.')[0].toLowerCase();
         let uploadPath = path.join(__dirname, '..', 'uploadedfile', csvFile.name);
+
+
+        // Move the file to the destination
+        csvFile.mv(uploadPath, async (error) => {
+            if (error) {
+                console.error(error);
+                return res.status(500).send('Error moving the uploaded file.');
+            }
 
         let tableSchema = `USE ${MYSQL_DATABASE};\n`;
         tableSchema += `DROP TABLE IF EXISTS ${tableName};\n`;
@@ -212,6 +220,7 @@ router.post("/", async (req, res) => {
             console.error(error);
             return res.status(500).send('An error occurred while executing SQL queries.');
         }
+    });
     } catch (error) {
         console.error(error);
         return res.status(500).send('An error occurred while uploading the CSV file.');
