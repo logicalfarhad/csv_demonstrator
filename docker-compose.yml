@@ -8,12 +8,14 @@ services:
       context: ./server
       dockerfile: Dockerfile
     networks:
-      - app
+      - app  
     environment:
       - MYSQL_HOST=mysqldb
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=dbpassword
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=demonstrator
+      - MONGO_HOST=mongodb_container
+      - MONGO_DATABASE=chatgpt
     env_file:
       - ./server/.env
     depends_on:
@@ -42,7 +44,6 @@ services:
     restart: always
     networks:
       - app
-    env_file: ./server/.env
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: demonstrator
