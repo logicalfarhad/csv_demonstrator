@@ -5,6 +5,7 @@ import SvgComponent from "../components/SvgComponent";
 import SignupForm from "../components/signup/SignUpForm";
 import LoginForm from "../components/login/LoginForm";
 import { useNavigate } from "react-router-dom";
+import loginImage from './../images/AdobeStock_593861804.jpeg'
 
 const Login = () => {
   const [isSignupFormVisible, setIsSignupFormVisible] = useState(false);
@@ -68,9 +69,9 @@ const Login = () => {
           <Col xs={12} md={6}>
             <div className="d-flex justify-content-center">
               <Image
-                src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?q=80&w=696&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                rounded
+                src={loginImage}
                 className="w-100"
+                rounded
               />
             </div>
           </Col>

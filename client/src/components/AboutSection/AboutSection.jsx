@@ -1,6 +1,9 @@
 import React from 'react';
 import { Row, Col, Image } from 'react-bootstrap';
 import './AboutSection.css'; // Import your CSS file
+import image1 from './../../images/AdobeStock_672055378.jpeg'
+import image2 from './../../images/AdobeStock_652599102.jpeg'
+import image3 from './../../images/AdobeStock_127541998.jpeg'
 
 const AboutSection = () => {
   return (
@@ -29,7 +32,7 @@ const AboutSection = () => {
         </Col>
         <Col md={6} className="About-img">
           <Image
-            src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?q=80&w=696&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={image1}
             fluid
             alt=""
             rounded
@@ -42,7 +45,7 @@ const AboutSection = () => {
       <Row className='align-items-center'>
         <Col md={6} className="About-img">
           <Image
-            src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?q=80&w=696&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={image2}
             fluid
             alt=""
             rounded
@@ -71,7 +74,7 @@ const AboutSection = () => {
         </Col>
         <Col md={6} className="About-img">
           <Image
-            src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?q=80&w=696&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            src={image3}
             fluid
             alt=""
             rounded
