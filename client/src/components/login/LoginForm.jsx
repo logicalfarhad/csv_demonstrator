@@ -27,7 +27,7 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (response.status === 200) {
-        dispatch({ type: "LOGIN", payload: data.token });
+                dispatch({ type: "LOGIN", payload: data.token });
         navigate("/");
       } else {
         setErrorMessage(data.message);
@@ -44,7 +44,7 @@ const LoginForm = () => {
       <h1>Welcome Back</h1>
       <form onSubmit={handleLogin}>
         <input
-          type="loginEmail"
+          type="email"
           name="loginEmail"
           id="loginEmail"
           placeholder="login email"

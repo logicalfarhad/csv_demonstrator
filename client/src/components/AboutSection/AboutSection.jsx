@@ -21,10 +21,10 @@ const AboutSection = () => {
       <Row className='align-items-center'>
         <Col md={6}>
           <h4 className="subheading">
-            Inhalt 1
+          Data Uploading: Simplified Uploading and Metadata Handling
           </h4>
           <p className="text-muted">
-          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+          Streamline your data analysis with LLM Insight Expert's seamless data uploading feature. With support for CSV file formats, users can effortlessly import various datasets directly into the system. Our interface provides intuitive tools for managing your files, allowing you to update metadata and annotate individual columns with descriptive labels. This clarifies the content and context of your data, setting the stage for more accurate and meaningful insights. Whether you’re working with sales figures, customer demographics, or complex transaction records, LLM Insight Expert ensures that the preparation of your data is as straightforward as the analysis that follows.
           </p>
         </Col>
         <Col md={6} className="About-img">
@@ -50,11 +50,32 @@ const AboutSection = () => {
         </Col>
         <Col md={6}>
           <h4 className="subheading">
-            Inhalt 2
+          Prompting: Natural Language Data Interaction
           </h4>
           <p className="text-muted">
-          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+          The 'Prompting' section of LLM Insight Expert is designed for straightforward and direct data interrogation. Users can input queries in natural language within a chat interface, which are then automatically translated into SQL queries by the system. The resulting data retrieval is processed and the answers are structured for clarity and relevance. The system can provide dataset overviews, answer complex queries for detailed business intelligence, and even generate explanations of data patterns. Responses are tailored to the nature of the data, presented in textual summaries, organized tables, or visualized through various chart types—including bar, line, pie charts, or geographical maps for locational data. This functionality transforms data interaction into a more efficient and user-friendly experience, bridging the gap between natural language and database querying.​
           </p>
+        </Col>
+      </Row>
+      <br />
+      <hr style={{borderTop: '5px solid grey'}}/>
+      <br />
+      <Row className='align-items-center'>
+        <Col md={6}>
+          <h4 className="subheading">
+          PDF Report Generation: Automatic Documentation​
+          </h4>
+          <p className="text-muted">
+          This feature enables users to convert the outcomes of their data queries into PDF documents. After performing data analysis through natural language interactions, the system can automatically compile the results, including textual data and visualizations, into a formatted report. This process facilitates the efficient creation of reports that are ready for review, sharing, or archival purposes, enhancing productivity and communication of insights.
+          </p>
+        </Col>
+        <Col md={6} className="About-img">
+          <Image
+            src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?q=80&w=696&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+            fluid
+            alt=""
+            rounded
+          />
         </Col>
       </Row>
     </div>
