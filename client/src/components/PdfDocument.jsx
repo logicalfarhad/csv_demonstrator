@@ -50,6 +50,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexGrow: 1,
     padding: 20
+  },
+  tableRow: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderColor: "#000",
+    paddingVertical: 5,
+  },
+  columnHeader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  tableCell: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   }
 
 
@@ -58,6 +74,19 @@ const styles = StyleSheet.create({
 // Create Document Component
 const PdfDocument = (props) => {
   console.log(props);
+
+  const headerKeys = Object.keys(props.queryResp[0]);
+  // Calculate the maximum font size based on the available page width
+  const maxFontSize = 10;
+  const maxWidth = 500; // Adjust this based on your page width
+  const maxHeaderWidth = maxWidth / headerKeys.length;
+  const fontSize = maxFontSize > maxHeaderWidth ? maxHeaderWidth : maxFontSize;
+
+  // Calculate the maximum font size for row content based on the available page width
+  const maxRowFontSize = 12;
+  const maxRowWidth = maxWidth / headerKeys.length;
+  const rowFontSize = maxRowFontSize > maxRowWidth ? maxRowWidth : maxRowFontSize;
+
   return (
     <PDFViewer style={{width:'100%', height:'400px'}}>
       <Document>
@@ -75,12 +104,29 @@ const PdfDocument = (props) => {
           </View>
 
           <Text style={{paddingTop:'20',color:'blue'}}>Query Results</Text>
-          <View style={styles.viewCode}>
-          
+          {/* Headers */}
+          <View style={styles.tableRow}>
+            {headerKeys.map((key) => (
+              <View key={key} style={{ ...styles.columnHeader, width: maxHeaderWidth }}>
+                <Text style={{ fontSize }}>{key}</Text>
+              </View>
+            ))}
+          </View>
+          {/* Rows */}
+          {props.queryResp.map((row, index) => (
+            <View key={index} style={styles.tableRow}>
+              {Object.values(row).map((value, subIndex) => (
+                <View key={subIndex} style={{ ...styles.tableCell, width: maxRowWidth }}>
+                  <Text style={{ fontSize: rowFontSize }}>{value}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+          {/* <View style={styles.viewCode}>
             <Text style={styles.textCode}>
               {JSON.stringify(props.queryResp, undefined, 2)}
             </Text>
-          </View>
+          </View> */}
         </Page>
 
         {props.chartsImg.length > 0 && (
