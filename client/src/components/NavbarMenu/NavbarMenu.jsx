@@ -57,7 +57,7 @@ const NavbarMenu = () => {
             <Nav.Link href="/prompting" active={isActive('/prompting')}>PROMPTING</Nav.Link>
           </Nav>
           <Nav>
-            <button className='button-primary' style={{margin:'2px'}}>FAQ</button>
+            {/* <button className='button-primary' style={{margin:'2px'}}>FAQ</button>   */}
             <button className='button-primary' style={{margin:'2px'}} onClick={() => handleLogout()}>
               Log out
             </button>

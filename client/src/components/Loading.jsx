@@ -3,7 +3,7 @@ import PulseLoader from "react-spinners/PulseLoader";
 
 const Loading = () => {
   const override = {
-    color: "#fff",
+    color: "#005b7f",
     loading: true,
   };
 
@@ -13,7 +13,7 @@ const Loading = () => {
         color={override.color}
         loading={override.loading}
         cssOverride={override}
-        size={5}
+        size={15}
         aria-label="Loading Spinner"
         data-testid="loader"
       />

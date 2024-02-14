@@ -160,11 +160,11 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
         Show Query Response
       </Button> */}
 
-          {!isButtonVisible && (
+          {/* {!isButtonVisible && (
             <button className="query-response" onClick={handleShow}>
               Show Query Response
             </button>
-          )}
+          )} */}
           {/* <button className="query-response" onClick={handleShow}>
             Show Query Response
           </button>
@@ -175,14 +175,14 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
             Show Visualization
           </button> */}
 
-          {!isButtonVisible && (
+          {/* {!isButtonVisible && (
             <button
               className="visualization query-response"
               onClick={handleShowVisualization}
             >
               Show Visualization/Report
             </button>
-          )}
+          )} */}
 
           {!isButtonVisible && (
             <>
@@ -212,6 +212,11 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
                     <Button variant="outline-primary" onClick={toggleFullScreen} style={{ marginLeft: 'auto' }}>
                       {isFullScreen ? <FullscreenExit /> : <Fullscreen />}
                     </Button>
+                    {!isButtonVisible && (
+                    <Button variant="outline-primary" onClick={handleShowVisualization} style={{ marginLeft: '5px' }}>
+                      Report
+                    </Button>
+                    )}
                     <Chart data={queryResponse} />
                   </div>
                 </Col>
@@ -235,7 +240,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
 
           <Modal show={showVisualization} onHide={handleCloseVisualization}>
             <Modal.Header closeButton>
-              <Modal.Title>Visualization & Report</Modal.Title>
+              <Modal.Title>Report</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               <PdfDocument
@@ -245,9 +250,9 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
                 question={question}
               />
 
-              <Button onClick={generateImages}>
+              <button className='button-primary' onClick={generateImages}>
                 Generate Pdf with visualizations
-              </Button>
+              </button>
 
               {/* <PDFDownloadLink document={<PdfDocument aiResponse={botResoponse} queryResp={queryResponse} question={question} chartsImg={chartImages} />} fileName="somename.pdf">
       {({ blob, url, loading, error }) =>

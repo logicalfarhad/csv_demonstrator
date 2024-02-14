@@ -152,9 +152,9 @@ const Prompting = () => {
                 >
                   <div className="chatPromptMainContainer">
                     <div className="chatPromptWrapper">
-                      <Avatar bg="#5437DB" className="userSVG">
+                      <Avatar bg="#005b7f" className="userSVG">
                         <svg
-                          stroke="currentColor"
+                          stroke="white"
                           fill="none"
                           strokeWidth={1.9}
                           viewBox="0 0 24 24"
