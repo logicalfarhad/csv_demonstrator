@@ -52,9 +52,9 @@ const NavbarMenu = () => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#introduction" active={isActive('/introduction')}>INTRODUCTION</Nav.Link>
-            <Nav.Link href="#data-uploading" active={isActive('/data-uploading')}>DATA UPLOADING</Nav.Link>
-            <Nav.Link href="#prompting" active={isActive('/prompting')}>PROMPTING</Nav.Link>
+            <Nav.Link href="/introduction" active={isActive('/introduction')}>INTRODUCTION</Nav.Link>
+            <Nav.Link href="/data-uploading" active={isActive('/data-uploading')}>DATA UPLOADING</Nav.Link>
+            <Nav.Link href="/prompting" active={isActive('/prompting')}>PROMPTING</Nav.Link>
           </Nav>
           <Nav>
             <button className='button-primary' style={{margin:'2px'}}>FAQ</button>
