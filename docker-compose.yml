@@ -47,6 +47,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: demonstrator
+      MYSQL_SQL_MODE: "NO_ENGINE_SUBSTITUTION"
+    command: --sql-mode="NO_ENGINE_SUBSTITUTION"
 
   nginx:
     container_name: nginx_container

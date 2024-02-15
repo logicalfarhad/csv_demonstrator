@@ -7,11 +7,11 @@ RUN npm run build
 
 FROM nginx:stable-alpine
 EXPOSE 80
-COPY --from=builder /app/build /usr/share/nginx/html/demonstrator
+COPY --from=builder /app/build /usr/share/nginx/html
 
 
 # Copy .env file to container
-WORKDIR /usr/share/nginx/html/demonstrator
+WORKDIR /usr/share/nginx/html
 COPY .env .
 
 # Add bash for running the environment setup script
@@ -22,4 +22,4 @@ COPY env.sh .
 RUN chmod +x env.sh
 
 # Start Nginx server and run environment setup script
-CMD ["/bin/bash", "-c", "/usr/share/nginx/html/demonstrator/env.sh && nginx -g 'daemon off;'"]
+CMD ["/bin/bash", "-c", "/usr/share/nginx/html/env.sh && nginx -g 'daemon off;'"]
