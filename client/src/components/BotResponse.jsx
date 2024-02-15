@@ -146,7 +146,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
       {queryResponse === false && (
         <>
           {!isButtonVisible && (
-            <pre style={{ color: "#baf3ff" }}>
+            <pre style={{ color: "#ff245d" }}>
               Since this is not a valid SQL query, response couldn't be
               generated from database.
             </pre>

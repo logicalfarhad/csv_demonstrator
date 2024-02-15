@@ -6,7 +6,7 @@ const IntroSection = () => {
     <div id="introsection" className="">
       <h4>
       Welcome to LLM Insight Expert. <br /> 
-        <BotResponse response=" Please ask your questions. I will translate it into a SQL-Query and provide you the needed informations" />
+        <BotResponse response=" Please ask your questions. I will translate them into SQL queries and provide you with the relevant information." />
       </h4>
       {/* <h2>
       </h2>

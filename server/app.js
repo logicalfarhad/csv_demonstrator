@@ -57,9 +57,9 @@ app.use("/login", loginRouter);
 
 // API routes
 
-app.use("/upload", uploadRouter);
-app.use("/openai", openaiRouter);
-app.use("/misc", miscRouter)
+app.use("/upload",authenticateToken, uploadRouter);
+app.use("/openai",authenticateToken, openaiRouter);
+app.use("/misc", authenticateToken, miscRouter)
 
 app.get("/test", (req, res) => {
   const personList = [
