@@ -28,7 +28,10 @@ const LoginForm = () => {
 
       if (response.status === 200) {
                 dispatch({ type: "LOGIN", payload: data.token });
+              // Introduce a delay before redirection (e.g., 500 milliseconds)
+      setTimeout(() => {
         navigate("/");
+      }, 500);
       } else {
         setErrorMessage(data.message);
       }
