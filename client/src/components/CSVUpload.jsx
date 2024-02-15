@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Table, Row, Col } from 'react-bootstrap';
 import { useDropzone } from 'react-dropzone';
-import { Gear, X, Save, PlusCircle, Plus } from 'react-bootstrap-icons';
+import { Gear, X, Save, PlusCircle, Plus, Upload } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -371,6 +371,7 @@ const CSVUpload = () => {
                 <hr style={{ borderTop: "5px solid grey" }} />
                 <br />
                 <h5>Selected Files:</h5>
+                <p style={{color:'red'}}>Click on the upload icon to upload the file</p>
                 <Table striped bordered hover>
                   <thead>
                     <tr>
@@ -389,7 +390,7 @@ const CSVUpload = () => {
                             className="me-2"
                             onClick={() => handleUpload(file)}
                           >
-                            <Save size={14} />
+                            <Upload size={14} />
                           </Button>
 
                           <Button
@@ -499,6 +500,7 @@ const CSVUpload = () => {
             {selectedFiles.length > 0 && (
               <div>
                 <h5>Selected Files:</h5>
+                <p style={{color:'red'}}>Click on the upload icon to upload the file</p>
                 <Table striped bordered hover>
                   <thead>
                     <tr>
@@ -517,7 +519,7 @@ const CSVUpload = () => {
                             className="me-2"
                             onClick={() => handleUpload(file)}
                           >
-                            <Save size={14} />
+                            <Upload size={14} />
                           </Button>
 
                           <Button

@@ -214,7 +214,7 @@ const Prompting = () => {
               value={inputPrompt}
               onChange={(e) => setInputPrompt(e.target.value)}
               onClick={() => setShowSuggestions(true)}
-              // onBlur={() => setShowSuggestions(false)} // Hide suggestions on blur
+              onBlur={() => setShowSuggestions(false)} // Hide suggestions on blur
               autoFocus
               placeholder=" Add new prompt"
             ></input>
@@ -242,7 +242,7 @@ const Prompting = () => {
         <div className="suggestionsWrapper">
           <div className="suggestions">
           {suggestions.slice().reverse().map((suggest, index) => (
-  <div key={index} className="suggestion inputPrompttTextarea" onClick={() => handleSuggestionClick(suggest)}>
+  <div key={index} className="suggestion inputPrompttTextarea" onMouseDown={() => handleSuggestionClick(suggest)}>
     {suggest}
   </div>
 ))}
