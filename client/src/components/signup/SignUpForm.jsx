@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from "react";
 import "./signupform.css";
 import { useNavigate } from "react-router-dom";
-import SvgComponent from "../SvgComponent";
+// import SvgComponent from "../SvgComponent";
+import logo from "./../../images/iais.png"
+import {Image } from 'react-bootstrap';
+
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const SignupForm =  ({ onSignupSuccess }) => {
   const [email, setEmail] = useState("");
@@ -56,7 +59,11 @@ const SignupForm =  ({ onSignupSuccess }) => {
   }, []);
   return (
     <div className="signupFormContainer">
-      <SvgComponent w={50} h={50} stroke="#202123" />
+      <Image style={{ width: "20%" }}
+        src={logo}
+      />
+      <br />
+      {/* <SvgComponent w={50} h={50} stroke="#202123" /> */}
       <h1>Create your account</h1>
       <form onSubmit={handleSignup}>
         <input

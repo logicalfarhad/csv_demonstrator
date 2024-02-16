@@ -2,7 +2,9 @@ import React, { useContext, useState } from "react";
 import "../signup/signupform.css";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import SvgComponent from "../SvgComponent";
+import {Image } from 'react-bootstrap';
+// import SvgComponent from "../SvgComponent";
+import logo from "./../../images/iais.png"
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const LoginForm = () => {
   const [loginEmail, setLoginEmail] = useState("");
@@ -43,7 +45,11 @@ const LoginForm = () => {
 
   return (
     <div className="signupFormContainer">
-      <SvgComponent w={50} h={50} stroke="#202123" />
+      <Image style={{ width: "20%" }}
+        src={logo}
+      />
+      {/* <SvgComponent w={50} h={50} stroke="#202123" /> */}
+      <br />
       <h1>Welcome Back</h1>
       <form onSubmit={handleLogin}>
         <input

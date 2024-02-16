@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import Button from "../components/Button";
 import {Row,Image, Container, Col  } from 'react-bootstrap';
-import SvgComponent from "../components/SvgComponent";
+// import SvgComponent from "../components/SvgComponent";
 import SignupForm from "../components/signup/SignUpForm";
 import LoginForm from "../components/login/LoginForm";
 import { useNavigate } from "react-router-dom";
 import loginImage from './../images/AdobeStock_593861804.jpeg'
+import logo from './../images/iais.png'
 
 const Login = () => {
   const [isSignupFormVisible, setIsSignupFormVisible] = useState(false);
@@ -35,9 +36,13 @@ const Login = () => {
         fluid
         className="d-flex align-items-center justify-content-center vh-100"
       >
-        <div className="position-absolute top-0 end-0 p-3">
+        <div className="position-absolute top-0 end-0 p-3" style={{ textAlign: 'right' }}>
           {/* <p>LOGO</p> */}
-          <SvgComponent w={50} h={50} />
+          <Image
+            src={logo}
+            className="w-50"
+          />
+          {/* <SvgComponent w={50} h={50} /> */}
         </div>
         <Row>
           <Col xs={12} md={6} className="text-center mb-md-0 mb-3">
