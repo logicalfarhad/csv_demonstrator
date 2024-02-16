@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   textCode: {
   },
   image: {
-    width: "60%",
+    width: "80%",
     padding: 10
   },
   imageCenter:{
