@@ -74,13 +74,15 @@ const Chart = ({ data }) => {
 
   useEffect(() => {
     const fetchData = async () => {
+      let bearer = 'Bearer ' + window.localStorage.getItem("token");
       try {
         // Check if both X and Y axes are selected
         if (selectedXAxis !== '' && selectedYAxis !== '' && data) {
           const response = await fetch(backend+'/openai/provide-desc', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
+              'Authorization': bearer
             },
             body: JSON.stringify({
               xAxis: selectedXAxis,
