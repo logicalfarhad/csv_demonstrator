@@ -132,7 +132,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
 
   return (
     <>
-      <pre>
+      <pre className='text-font'>
         {botResoponse.trim()}
         {botResoponse === response ? "" : "|"}
       </pre>

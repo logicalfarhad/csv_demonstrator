@@ -55,6 +55,11 @@
     padding: 5%;
     text-align: left;
   }
+
+  .text-font{
+    font-family: var(--text-font);
+    color: var(--primary-font-color);
+  }
   
   .App {
     font-family: var(--text-font);
@@ -151,7 +156,10 @@
     white-space: pre-wrap;
     /* position: relative; */
     top: -45px;
+    font-family: var(--text-font);
   }
+
+  
   
   pre {
     font-family: var(--text-font);
