@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Table, Row, Col } from 'react-bootstrap';
+import { Modal, Button, Form, Table, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
 import { useDropzone } from 'react-dropzone';
 import { Gear, X, Save, PlusCircle, Plus, Upload } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -17,6 +17,9 @@ const CSVUpload = () => {
   const [columnNameTable, setColumnNameTable] = useState([]);
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false)
   const [metadataCheckStatus, setMetadataCheckStatus] = useState([]);
+
+  const uploadTooltip = <Tooltip id="upload-tooltip">Upload File</Tooltip>;
+  const metadataTooltip = <Tooltip id="metadata-tooltip">Add Metadata Description</Tooltip>;
 
   const handleClose = () => {
     setShowModal(false);
@@ -371,7 +374,8 @@ const CSVUpload = () => {
                 <hr style={{ borderTop: "5px solid grey" }} />
                 <br />
                 <h5>Selected Files:</h5>
-                <p style={{color:'red'}}>Click on the upload icon to upload the file</p>
+                <p style={{color:'#bd0f0f', 'margin':'0'}}>1. Click on the upload icon <Upload size={20}/> to upload the file</p>
+                <p style={{color:'#bd0f0f'}}>2. If you want to add metadata description click <Gear size={20}/> icon</p>
                 <Table striped bordered hover>
                   <thead>
                     <tr>
@@ -384,6 +388,7 @@ const CSVUpload = () => {
                       <tr key={index}>
                         <td>{file.name}</td>
                         <td>
+                        <OverlayTrigger placement="bottom" overlay={uploadTooltip}>
                           <Button
                             variant="primary"
                             size="sm"
@@ -392,7 +397,8 @@ const CSVUpload = () => {
                           >
                             <Upload size={14} />
                           </Button>
-
+                          </OverlayTrigger>
+                          <OverlayTrigger placement="bottom" overlay={metadataTooltip}>
                           <Button
                             variant="info"
                             size="sm"
@@ -401,6 +407,7 @@ const CSVUpload = () => {
                           >
                             <Gear size={14} />
                           </Button>
+                          </OverlayTrigger>
                           <Button
                             variant="danger"
                             size="sm"
@@ -434,12 +441,12 @@ const CSVUpload = () => {
         <>
           <Row>
             <Col md={6} xs={12}>
-              <h4>Metadata configuration</h4>
+              <h4>Metadata Description</h4>
               <Table striped bordered hover>
                 <thead>
                   <tr>
                     <th>Columns</th>
-                    <th>Desc</th>
+                    <th>Description</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -500,7 +507,8 @@ const CSVUpload = () => {
             {selectedFiles.length > 0 && (
               <div>
                 <h5>Selected Files:</h5>
-                <p style={{color:'red'}}>Click on the upload icon to upload the file</p>
+                <p style={{color:'#bd0f0f'}}>1. Click on the upload icon <Upload size={20}/> to upload the file</p>
+                <p style={{color:'#bd0f0f'}}>2. If you want to add metadata description click <Gear size={20}/> icon</p>
                 <Table striped bordered hover>
                   <thead>
                     <tr>
@@ -567,7 +575,7 @@ const CSVUpload = () => {
 
       <Modal show={showMetadataModal} onHide={handleCloseMetadataModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Metadata Configuration</Modal.Title>
+          <Modal.Title>Metadata Description</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {tableData.length > 0 && (
@@ -575,7 +583,7 @@ const CSVUpload = () => {
               <thead>
                 <tr>
                   <th>Columns</th>
-                  <th>Desc</th>
+                  <th>Description</th>
                 </tr>
               </thead>
               <tbody>
@@ -621,7 +629,7 @@ const CSVUpload = () => {
       </Modal>
       <Modal show={isMetadataModalOpen} onHide={handleCloseMetadataConfigModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Metadata Configuration</Modal.Title>
+          <Modal.Title>Metadata Description</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {metadataCheckStatus.length > 0 ? (
