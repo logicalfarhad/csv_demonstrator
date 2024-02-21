@@ -178,7 +178,7 @@ const CSVUpload = () => {
     }
   };
 
-  const fetchDataWithToast = (url, requestOptions) => {
+  const fetchDataWithToast = (url, requestOptions, file) => {
     const promise = new Promise((resolve, reject) => {
       fetch(url, requestOptions)
         .then(response => {
@@ -195,12 +195,22 @@ const CSVUpload = () => {
         });
     });
 
+    if(file){
+      toast.promise(promise, {
+        pending: `Please wait uploading ${file}`,
+        success: `Successfully upload ${file}`,
+        error: `Error uploading ${file}`,
+      });
+    }
+    else{
+
+   
     toast.promise(promise, {
       pending: "Please wait",
       success: "Success",
       error: "Error",
     });
-
+  }
     return promise;
   };
 
@@ -317,6 +327,7 @@ const CSVUpload = () => {
     let bearer = 'Bearer ' + window.localStorage.getItem("token");
     const formData = new FormData();
     formData.append('csv', file);
+    console.log(file.path)
 
     const requestOption = {
       method: 'POST',
@@ -326,7 +337,7 @@ const CSVUpload = () => {
       }
     };
 
-    fetchDataWithToast(backend + '/upload', requestOption)
+    fetchDataWithToast(backend + '/upload', requestOption , file.path)
       .then(data => {
         console.log(data)
       })
