@@ -112,6 +112,16 @@ const Chart = ({ data }) => {
 
 
 
+  useEffect(() => {
+      const properties = Object.keys(data[0]);
+  
+      // Only proceed if there are more than 1 properties
+      if (properties.length > 1) {
+        // Example: Automatically select the first and second properties
+        setSelectedXAxis(properties[0]);
+        setSelectedYAxis(properties[1]);
+      }
+  }, []);
 
 
   const renderChartOptions = () => {
