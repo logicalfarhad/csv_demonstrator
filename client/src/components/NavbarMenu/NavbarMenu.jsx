@@ -1,16 +1,19 @@
 import React, { useContext } from "react";
-import { useLocation } from 'react-router-dom';
-import { AuthContext } from "../../context/AuthContext";
+import { Link, useLocation } from 'react-router-dom';
+// import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import './NavbarMenu.css'
+import { useKeycloak } from "@react-keycloak/web";
+
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
 const NavbarMenu = () => {
-  const { dispatch } = useContext(AuthContext);
+  const { keycloak, initialized } = useKeycloak();
+  // const { dispatch } = useContext(AuthContext);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -20,27 +23,33 @@ const NavbarMenu = () => {
 
 
   const handleLogout = async () => {
-      try {
-        let bearer = 'Bearer ' + window.localStorage.getItem("token");
-        const response = await fetch(backend + '/misc/truncate', {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
-            'Authorization': bearer
-          }
-        })
-        let data = await response.json();
-        console.log(data)
-        window.localStorage.removeItem('token');
-        window.localStorage.removeItem('prompts');
-        dispatch({ type: "LOGOUT" });
-        navigate("/");
+    // Ensure Keycloak is initialized and user is authenticated
+    if (!keycloak || !keycloak.authenticated) {
+      // Handle unauthenticated user
+      return;
+    }
+    const accessToken = keycloak.token;
+    try {
+      // let bearer = 'Bearer ' + window.localStorage.getItem("token");
+      const response = await fetch(backend + '/misc/truncate', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      let data = await response.json();
+      console.log(data)
+      // window.localStorage.removeItem('token');
+      window.localStorage.removeItem('prompts');
+      // dispatch({ type: "LOGOUT" });
+      // navigate("/");
+      keycloak.logout()
+    } catch (error) {
+      console.log("error happen during sign out", error);
+    }
 
-      } catch (error) {
-        console.log("error happen during sign out", error);
-      }
-    
   };
 
 
@@ -52,15 +61,26 @@ const NavbarMenu = () => {
         <Navbar.Toggle aria-controls="responsive-navbar-nav" />
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
-            <Nav.Link href="#introduction" active={isActive('/introduction')}>INTRODUCTION</Nav.Link>
-            <Nav.Link href="#data-uploading" active={isActive('/data-uploading')}>DATA UPLOADING</Nav.Link>
-            <Nav.Link href="#prompting" active={isActive('/prompting')}>PROMPTING</Nav.Link>
+          <Nav.Item>
+                <Link to="/introduction" className={`nav-link ${isActive('/introduction') ? 'active' : ''}`}>INTRODUCTION</Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Link to="/data-uploading" className={`nav-link ${isActive('/data-uploading') ? 'active' : ''}`}>DATA UPLOADING</Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Link to="/prompting" className={`nav-link ${isActive('/prompting') ? 'active' : ''}`}>PROMPTING</Link>
+              </Nav.Item>
           </Nav>
           <Nav>
             {/* <button className='button-primary' style={{margin:'2px'}}>FAQ</button>   */}
-            <button className='button-primary' style={{margin:'2px'}} onClick={() => handleLogout()}>
+            {/* <button className='button-primary' style={{margin:'2px'}} onClick={() => handleLogout()}>
               Log out
+            </button> */}
+            {!!keycloak.authenticated && (
+              <button className='button-primary' style={{margin:'2px'}} onClick={() => handleLogout()}>
+              Log out ({keycloak.tokenParsed.preferred_username})
             </button>
+              )}
           </Nav>
         </Navbar.Collapse>
       </Container>

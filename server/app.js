@@ -10,6 +10,7 @@ const uploadRouter = require("./routes/upload")
 const openaiRouter = require('./routes/openai')
 const miscRouter = require('./routes/misc')
 const db = require("./config/db");
+const fetch = require('node-fetch');
 
 const { dbConnect } = require('./config/db');
 const historyModule = require('./config/memory');
@@ -35,7 +36,23 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 
-const authenticateToken = (req, res, next) => {
+// Function to get Keycloak public key
+const getPublicKey = async (kid) => {
+  const jwksUri = `${process.env.KEYCLOAK_URL}realms/${process.env.KEYCLOAK_REALM}/protocol/openid-connect/certs`;
+  const response = await fetch(jwksUri);
+  const data = await response.json(); // Parse JSON response
+  const key = data.keys.find((k) => k.kid === kid);
+
+  if (key && key.x5c && key.x5c.length > 0) {
+    const cert = `-----BEGIN CERTIFICATE-----\n${key.x5c[0]}\n-----END CERTIFICATE-----`;
+    return cert;
+  }
+
+  throw new Error("Public key not found or in an unsupported format.");
+};
+
+
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
     return res.status(401).json({ error: 'Not Authorized' });
@@ -43,9 +60,29 @@ const authenticateToken = (req, res, next) => {
 
   const token = authHeader.split(' ')[1];
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
-    next();
+    const decoded = jwt.decode(token, { complete: true });
+    const kid = decoded.header.kid;
+    const publicKey = await getPublicKey(kid);
+    jwt.verify(token, publicKey, (err, decoded) => {
+      if (err) {
+        return res.status(401).json({ message: "Unauthorized: Invalid token" });
+      }
+
+      // Check token expiration
+      const currentTimestamp = Math.floor(Date.now() / 1000);
+      if (decoded.exp && decoded.exp < currentTimestamp) {
+        return res
+          .status(401)
+          .json({ message: "Unauthorized: Token has expired" });
+      }
+
+      console.log(decoded)
+      req.user = decoded.preferred_username;
+      console.log(req.user);
+      next();
+    });
   } catch (error) {
+    console.log(error)
     return res.status(401).json({
       error: 'User session expired, please logout and login again!'
     });

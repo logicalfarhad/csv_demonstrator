@@ -1,71 +1,29 @@
 import "./normal.css";
 import "./App.css";
-import Home from "./pages/Home";
 import Login from "./pages/Login";
-import LoginForm from "./components/login/LoginForm";
-import { Navigate, Route, Routes } from "react-router-dom";
-import { useContext } from "react";
-import { AuthContext } from "./context/AuthContext";
+import React, {Suspense, lazy} from 'react'
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { ReactKeycloakProvider } from "@react-keycloak/web";
+import keycloak from "./Keycloak"
 
+import PrivateRoute from './helpers/PrivateRoute';
 import DataUploading from "./pages/DataUploading.jsx/DataUploading";
 import Prompting from "./pages/Prompting/Prompting";
 import Introduction from "./pages/Introduction/Introduction";
 
 function App() {
-  const { token } = useContext(AuthContext);
-
-  const RequireAuth = ({ children }) => {
-    return typeof token === "string" && token.length > 0 ? children : <Navigate to="/auth/login" />;
-  };
-
   return (
     <div className="App">
-      <Routes>
-      <Route
-          index
-          path="/"
-          element={
-            <RequireAuth>
-              {/* <Home /> */}
-              <Introduction />
-            </RequireAuth>
-          }
-        />
-        <Route
-          index
-          path="/introduction"
-          element={
-            <RequireAuth>
-              {/* <Home /> */}
-              <Introduction />
-            </RequireAuth>
-          }
-        />
-        <Route
-          index
-          path="/data-uploading"
-          element={
-            <RequireAuth>
-              <DataUploading />
-            </RequireAuth>
-          }
-        />
-        <Route
-          index
-          path="/prompting"
-          element={
-            <RequireAuth>
-              <Prompting />
-            </RequireAuth>
-          }
-        />
-        {/* <Route path="/navbar" element={<NavbarMenu />} />
-        <Route path="/introduction" element={<Introduction />} />
-        <Route path="/data-uploading" element={<DataUploading />} />
-        <Route path="/prompting" element={<Prompting />} /> */}
-        <Route path="/auth/login" element={<Login />} />
-        <Route path="/login" element={<LoginForm />} />
-      </Routes>
+      <ReactKeycloakProvider authClient={keycloak} initOptions={{ checkLoginIframe: false }}>
+        <Router basename='/'>
+          <Routes>
+            <Route path="/introduction" element={<PrivateRoute><Introduction /></PrivateRoute>} />
+            <Route path="/data-uploading" element={<PrivateRoute><DataUploading /></PrivateRoute>} />
+            <Route path="/prompting" element={<PrivateRoute><Prompting /></PrivateRoute>} />
+            <Route path="/" element={<Login />} />
+          </Routes>
+        </Router>
+      </ReactKeycloakProvider>
     </div>
   );
 }

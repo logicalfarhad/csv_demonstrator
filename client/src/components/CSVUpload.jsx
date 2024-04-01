@@ -5,9 +5,11 @@ import { Gear, X, Save, PlusCircle, Plus, Upload } from 'react-bootstrap-icons';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useKeycloak } from "@react-keycloak/web";
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
 const CSVUpload = () => {
+  const { keycloak } = useKeycloak();
   const [showModal, setShowModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [showTableModal, setShowTableModal] = useState(false);
@@ -215,7 +217,14 @@ const CSVUpload = () => {
   };
 
   const handleConfigureMetadata = (file) => {
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    // let bearer = 'Bearer ' + window.localStorage.getItem("token");
+          // Ensure Keycloak is initialized and user is authenticated
+  if (!keycloak || !keycloak.authenticated) {
+    // Handle unauthenticated user
+    return;
+  }
+  const accessToken = keycloak.token;
+
     let schema = file.name.split('.')[0].toLowerCase();
     setSelectedFileNames(schema);
 
@@ -225,7 +234,7 @@ const CSVUpload = () => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': bearer
+        'Authorization': `Bearer ${accessToken}`
       }
     };
 
@@ -261,7 +270,14 @@ const CSVUpload = () => {
   };
 
   const handleCheckMetaData = async () => {
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    // let bearer = 'Bearer ' + window.localStorage.getItem("token");
+          // Ensure Keycloak is initialized and user is authenticated
+  if (!keycloak || !keycloak.authenticated) {
+    // Handle unauthenticated user
+    return;
+  }
+  const accessToken = keycloak.token;
+
     try {
       const response = await fetch(backend + '/upload/checkmetadata', {
         method: 'POST',
@@ -269,7 +285,7 @@ const CSVUpload = () => {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': bearer
+          'Authorization': `Bearer ${accessToken}`
         }
       });
       let status = await response.json();
@@ -289,7 +305,12 @@ const CSVUpload = () => {
   };
 
   const handleMetaDataSave = async () => {
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    // let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    if (!keycloak || !keycloak.authenticated) {
+      // Handle unauthenticated user
+      return;
+    }
+    const accessToken = keycloak.token;
 
     try {
       const response = await fetch(backend + '/misc/saveMetadata', {
@@ -301,7 +322,7 @@ const CSVUpload = () => {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': bearer
+          'Authorization': `Bearer ${accessToken}`
         }
       });
 
@@ -323,8 +344,14 @@ const CSVUpload = () => {
   };
 
   const handleUpload = async (file) => {
+      // Ensure Keycloak is initialized and user is authenticated
+  if (!keycloak || !keycloak.authenticated) {
+    // Handle unauthenticated user
+    return;
+  }
+  const accessToken = keycloak.token;
 
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    // let bearer = 'Bearer ' + window.localStorage.getItem("token");
     const formData = new FormData();
     formData.append('csv', file);
     console.log(file.path)
@@ -333,7 +360,7 @@ const CSVUpload = () => {
       method: 'POST',
       body: formData,
       headers: {
-        'Authorization': bearer
+        'Authorization': `Bearer ${accessToken}`
       }
     };
 

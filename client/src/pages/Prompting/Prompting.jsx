@@ -7,8 +7,10 @@ import Loading from "../../components/Loading";
 import SvgComponent from "../../components/SvgComponent";
 import { useNavigate } from "react-router-dom";
 import NavbarMenu from "../../components/NavbarMenu/NavbarMenu";
+import { useKeycloak } from "@react-keycloak/web";
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const Prompting = () => {
+  const { keycloak } = useKeycloak();
   const [inputPrompt, setInputPrompt] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -40,13 +42,18 @@ const Prompting = () => {
       }
 
       async function callAPI() {
-        let bearer = 'Bearer ' + window.localStorage.getItem("token");
+        // let bearer = 'Bearer ' + window.localStorage.getItem("token");
+        if (!keycloak || !keycloak.authenticated) {
+          // Handle unauthenticated user
+          return;
+        }
+        const accessToken = keycloak.token;
         try {
           const response = await fetch(backend + "/openai", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              'Authorization': bearer
+              'Authorization': `Bearer ${accessToken}`
             },
             body: JSON.stringify({ query: inputPrompt }),
           });
@@ -75,38 +82,38 @@ const Prompting = () => {
   };
 
   useEffect(() => {
-    let isMounted = true;
-    async function checkTokenValidity() {
-      try {
-        let bearer = 'Bearer ' + window.localStorage.getItem("token");
-        const response = await fetch(backend + "/login/check-token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            'Authorization': bearer
-          },
-        });
-        const data = await response.json();
-        if (!data.valid) {
-          console.warn("User session expired, please login again!");
-          // Handle token invalidity, such as logging out the user
-          navigate("/auth/login");
-        } else {
-          navigate("/prompting");
-        }
-      } catch (error) {
-        console.error("Error checking token validity:", error);
-        navigate("/auth/login");
-      }
-    }
+    // let isMounted = true;
+    // async function checkTokenValidity() {
+    //   try {
+    //     let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    //     const response = await fetch(backend + "/login/check-token", {
+    //       method: "POST",
+    //       headers: {
+    //         "Content-Type": "application/json",
+    //         'Authorization': bearer
+    //       },
+    //     });
+    //     const data = await response.json();
+    //     if (!data.valid) {
+    //       console.warn("User session expired, please login again!");
+    //       // Handle token invalidity, such as logging out the user
+    //       navigate("/auth/login");
+    //     } else {
+    //       navigate("/prompting");
+    //     }
+    //   } catch (error) {
+    //     console.error("Error checking token validity:", error);
+    //     navigate("/auth/login");
+    //   }
+    // }
 
-    if (isMounted) {
-      if (window.localStorage.getItem("token")) {
-        checkTokenValidity();
-      } else {
-        navigate("/auth/login");
-      }
-    }
+    // if (isMounted) {
+    //   if (window.localStorage.getItem("token")) {
+    //     checkTokenValidity();
+    //   } else {
+    //     navigate("/auth/login");
+    //   }
+    // }
 
     if (chatLogRef.current) {
       chatLogRef.current.scrollIntoView({
@@ -115,9 +122,9 @@ const Prompting = () => {
       });
     }
 
-    return () => {
-      isMounted = false;
-    };
+    // return () => {
+    //   isMounted = false;
+    // };
   }, [navigate]);
 
 
