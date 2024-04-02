@@ -1,0 +1,13 @@
+.login-pf body {
+    background: linear-gradient(0.25turn, #4b7b9c, 40%, #b9d8da);;
+}
+
+/*to add logo to login page need to go to admin panel for realm and set:
+<div  class="kc-logo-text"></div>
+*/
+div.kc-logo-text {
+    background-image: url(../img/ki-nrw-logo.svg);
+    background-repeat: no-repeat;
+    height: 100px;
+    margin: 0 auto;
+}
