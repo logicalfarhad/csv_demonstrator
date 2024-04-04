@@ -62,13 +62,13 @@ const NavbarMenu = () => {
         <Navbar.Collapse id="responsive-navbar-nav">
           <Nav className="me-auto">
           <Nav.Item>
-                <Link to="/introduction" className={`nav-link ${isActive('/introduction') ? 'active' : ''}`}>INTRODUCTION</Link>
+                <a href="#/introduction" className={`nav-link ${isActive('/introduction') ? 'active' : ''}`}>INTRODUCTION</a>
               </Nav.Item>
               <Nav.Item>
-                <Link to="/data-uploading" className={`nav-link ${isActive('/data-uploading') ? 'active' : ''}`}>DATA UPLOADING</Link>
+                <a href="#/data-uploading" className={`nav-link ${isActive('/data-uploading') ? 'active' : ''}`}>DATA UPLOADING</a>
               </Nav.Item>
               <Nav.Item>
-                <Link to="/prompting" className={`nav-link ${isActive('/prompting') ? 'active' : ''}`}>PROMPTING</Link>
+                <a href="#/prompting" className={`nav-link ${isActive('/prompting') ? 'active' : ''}`}>PROMPTING</a>
               </Nav.Item>
           </Nav>
           <Nav>
