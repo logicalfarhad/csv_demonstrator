@@ -43,12 +43,10 @@ const Login = () => {
           <Image src={logo} className="w-50" />
         </div>
         <div className="position-absolute top-0 start-0 p-3">
-          <div className="custom-div">
-            <FormControlLabel
-              control={<Switch checked={switchState} onChange={handleSwitchChange} />}
-              label={t("switchLabel")}
-            />
-          </div>
+          <FormControlLabel
+            control={<Switch checked={switchState} onChange={handleSwitchChange} />}
+            label={t("switchLabel")}
+          />
         </div>
         <Row>
           <Col xs={12} md={6} className="text-center mb-md-0 mb-3">
@@ -74,7 +72,7 @@ const Login = () => {
           </Col>
         </Row>
       </Container>
-      <Footer/>
+      <Footer />
     </>
   );
 };
