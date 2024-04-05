@@ -78,10 +78,10 @@ const NavbarMenu = () => {
                 <a href="#/introduction" className={`nav-link ${isActive('/introduction') ? 'active' : ''}`}>{t("menu1_name")}</a>
               </Nav.Item>
               <Nav.Item>
-                <a href="#/data-uploading" className={`nav-link ${isActive('/data-uploading') ? 'active' : ''}`}>{t("menu1_name")}</a>
+                <a href="#/data-uploading" className={`nav-link ${isActive('/data-uploading') ? 'active' : ''}`}>{t("menu2_name")}</a>
               </Nav.Item>
               <Nav.Item>
-                <a href="#/prompting" className={`nav-link ${isActive('/prompting') ? 'active' : ''}`}>{t("menu1_name")}</a>
+                <a href="#/prompting" className={`nav-link ${isActive('/prompting') ? 'active' : ''}`}>{t("menu3_name")}</a>
               </Nav.Item>
             </Nav>
             <Nav>
