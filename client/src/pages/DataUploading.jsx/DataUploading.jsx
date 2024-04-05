@@ -2,7 +2,7 @@ import React, {useEffect} from 'react';
 import CSVUpload from '../../components/CSVUpload';
 import NavbarMenu from '../../components/NavbarMenu/NavbarMenu';
 import { useNavigate } from "react-router-dom";
-
+import Footer from '../../components/Footer';
 
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
@@ -52,6 +52,7 @@ const DataUploading = () => {
     <>
     <NavbarMenu />
     <CSVUpload />
+    <Footer/>
     </>
   );
 };

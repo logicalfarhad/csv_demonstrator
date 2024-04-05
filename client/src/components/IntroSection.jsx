@@ -1,12 +1,15 @@
 import React from "react";
 import BotResponse from "./BotResponse";
-
+import { useTranslation } from "react-i18next";
 const IntroSection = () => {
+  const { t, i18n } = useTranslation();
+
+
   return (
     <div id="introsection" className="">
       <h4>
-      Welcome to LLM Insight Expert. <br /> 
-        <BotResponse response=" Please ask your questions. I will translate them into SQL queries and provide you with the relevant information." />
+        {t("welcomeLabel")} <br />
+        <BotResponse response={t("menu3_summary")} />
       </h4>
       {/* <h2>
       </h2>

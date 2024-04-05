@@ -444,7 +444,7 @@
   }
 }
 
-  
+  /*
   @media (hover: hover) {
     button:hover {
       cursor: pointer;
@@ -452,7 +452,7 @@
       border-radius: 20%;
     }
   }
-  
+  */
   .loginContainer {
     background: var(--primary-bg-color);
     width: 100%;

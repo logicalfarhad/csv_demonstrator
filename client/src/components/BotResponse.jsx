@@ -136,11 +136,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
         {botResoponse.trim()}
         {botResoponse === response ? "" : "|"}
       </pre>
-      {isButtonVisible && (
-        <button className="stop-messgage" onClick={stopPrinting}>
-          {isPrinting ? "Stop Message" : "Regenerate Message"}
-        </button>
-      )}
+      
 
       <br />
       {queryResponse === false && (

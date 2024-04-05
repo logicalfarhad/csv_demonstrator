@@ -3,7 +3,7 @@ import AboutSection from '../../components/AboutSection/AboutSection';
 import NavbarMenu from '../../components/NavbarMenu/NavbarMenu';
 import { useNavigate } from "react-router-dom";
 import { useKeycloak } from "@react-keycloak/web"; // Import useKeycloak hook
-
+import Footer from '../../components/Footer';
 
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
@@ -63,6 +63,7 @@ const Introduction = () => {
     <>
     <NavbarMenu />
     <AboutSection />
+    <Footer />
     </>
   );
 };

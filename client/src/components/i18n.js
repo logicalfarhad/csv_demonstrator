@@ -1,0 +1,95 @@
+// i18n.js
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+
+i18n
+    .use(initReactI18next)
+    .init({
+        resources: {
+            en: {
+                translation: {
+                    switchLabel: 'EN',
+                    welcomeLabel: "Welcome to LLM Insight Expert",
+                    description: "An intelligent assistant for ad hoc analyses",
+                    login: "Login",
+                    signup: "Sign Up",
+                    menu1_name: "Introduction",
+                    menu2_name: "Data Uploading",
+                    menu3_name: "Prompting",
+                    imprint: "Imprint",
+                    privacyPolicy: "Privacy Policy",
+                    termofUse: "Terms of Use",
+                    logout: "Logout",
+                    menu1_section1_title: "Welcome to LLM Insight Expert - An intelligent assistant for ad hoc analyses",
+                    menu1_section1_summary: "Companies often face the challenge of investing considerable resources to gain business-relevant insights from large and complex data sets. Extracting relevant information, analyzing sales trends and predicting customer behavior usually requires specialized skills and a deep understanding of data science. With the LLM Insight Expert, we successfully overcome the challenges and provide an innovative solution for wholesale and retail. Not only does it overcome the existing difficulties in working with data, but it also creates effortless access to critical business information for everyone.",
+                    menu1_section2_title: "Data Uploading: Simplified Uploading and Metadata Handling",
+                    menu1_section2_summary: "Streamline your data analysis with LLM Insight Expert's seamless data uploading feature. With support for CSV file formats, users can effortlessly import various datasets directly into the system. Our interface provides intuitive tools for managing your files, allowing you to update metadata and annotate individual columns with descriptive labels. This clarifies the content and context of your data, setting the stage for more accurate and meaningful insights. Whether you’re working with sales figures, customer demographics, or complex transaction records, LLM Insight Expert ensures that the preparation of your data is as straightforward as the analysis that follows.",
+                    menu1_section3_title: "Prompting: Natural Language Data Interaction",
+                    menu1_section3_summary: "The 'Prompting' section of LLM Insight Expert is designed for straightforward and direct data interrogation. Users can input queries in natural language within a chat interface, which are then automatically translated into SQL queries by the system. The resulting data retrieval is processed and the answers are structured for clarity and relevance. The system can provide dataset overviews, answer complex queries for detailed business intelligence, and even generate explanations of data patterns. Responses are tailored to the nature of the data, presented in textual summaries, organized tables, or visualized through various chart types—including bar, line, pie charts, or geographical maps for locational data. This functionality transforms data interaction into a more efficient and user-friendly experience, bridging the gap between natural language and database querying.",
+                    menu1_section4_title: "PDF Report Generation: Automatic Documentation",
+                    menu1_section4_summary: "This feature enables users to convert the outcomes of their data queries into PDF documents. After performing data analysis through natural language interactions, the system can automatically compile the results, including textual data and visualizations, into a formatted report. This process facilitates the efficient creation of reports that are ready for review, sharing, or archival purposes, enhancing productivity and communication of insights.",
+                    menu2_btn_check_metadata: "Check Metadata",
+                    menu2_btn_use_testdata: "Use test data",
+                    menu2_inst: "Upload the data files in CSV format you want to interact with in natural language",
+                    menu2_dropzone_msg: "Drag 'n' drop CSV file(s) here, or click to select",
+                    menu2_selecedFile_msg: "Selected Files:",
+                    menu2_selectedfile_name: "File Name",
+                    menu2_selectedfile_action: "Actions",
+                    menu2_upload_all_btn: "Upload All",
+                    menu2_metadata_tooltip: "Add Metadata Description",
+                    menu2_metadadesc_title: "Metadata Description",
+                    menu2_metadata_table_column: "Columns",
+                    menu2_metadata_table_desc: "Description",
+                    menu2_save:"Save",
+                    menu2_cancel:"Cancel",
+                    menu3_summary:"Please ask your questions. I will translate them into SQL queries and provide you with the relevant information."
+                },
+            },
+            de: {
+                translation: {
+                    switchLabel: 'DE',
+                    welcomeLabel: "Willkommen bei LLM Insight Expert",
+                    description: "Ein intelligenter Assistent für Ad-hoc-Analysen",
+                    login: "Anmelden",
+                    signup: "Registrieren",
+                    menu1_name: "Einführung",
+                    menu2_name: "Hochladen von Daten",
+                    menu3_name: "Eingabeaufforderung",
+                    imprint: "Impressum",
+                    privacyPolicy: "Datenschutz",
+                    termofUse: "Nutzungsbedingungen",
+                    logout: "Abmeldung",
+                    menu1_section1_title: "Willkommen bei LLM Insight Expert - Ein intelligenter Assistent für Ad-hoc-Analysen",
+                    menu1_section1_summary: "Unternehmen stehen oft vor der Herausforderung, erhebliche Ressourcen zu investieren, um aus großen und komplexen Datensätzen geschäftsrelevante Erkenntnisse zu gewinnen. Die Extraktion relevanter Informationen, die Analyse von Verkaufstrends und die Vorhersage des Kundenverhaltens erfordern in der Regel spezielle Fähigkeiten und ein tiefes Verständnis von Data Science. Mit dem LLM Insight Expert überwinden wir erfolgreich die Herausforderungen und bieten eine innovative Lösung für den Groß- und Einzelhandel. Sie überwindet nicht nur die bestehenden Schwierigkeiten bei der Arbeit mit Daten, sondern schafft auch einen mühelosen Zugang zu wichtigen Geschäftsinformationen für alle.",
+                    menu1_section2_title: "Hochladen von Daten: Vereinfachtes Hochladen und Handhabung von Metadaten",
+                    menu1_section2_summary: "Optimieren Sie Ihre Datenanalyse mit der nahtlosen Daten-Upload-Funktion von LLM Insight Expert. Durch die Unterstützung von CSV-Dateiformaten können Nutzer mühelos verschiedene Datensätze direkt in das System importieren. Unsere Benutzeroberfläche bietet intuitive Werkzeuge zur Verwaltung Ihrer Dateien, die es Ihnen ermöglichen, Metadaten zu aktualisieren und einzelne Spalten mit beschreibenden Etiketten zu versehen. Dies verdeutlicht den Inhalt und den Kontext Ihrer Daten und schafft die Voraussetzungen für genauere und aussagekräftigere Erkenntnisse. Ganz gleich, ob Sie mit Umsatzzahlen, demografischen Daten von Kunden oder komplexen Transaktionsdatensätzen arbeiten, LLM Insight Expert stellt sicher, dass die Vorbereitung Ihrer Daten ebenso einfach ist wie die anschließende Analyse.",
+                    menu1_section3_title: "Eingabeaufforderung: Dateninteraktion in natürlicher Sprache",
+                    menu1_section3_summary: "Der 'Eingabeaufforderung'-Bereich von LLM Insight Expert ist für eine unkomplizierte und direkte Datenabfrage konzipiert. Die Benutzer können über eine Chat-Schnittstelle Abfragen in natürlicher Sprache eingeben, die dann vom System automatisch in SQL-Abfragen übersetzt werden. Die daraus resultierende Datenabfrage wird verarbeitet, und die Antworten werden im Hinblick auf Klarheit und Relevanz strukturiert. Das System kann Übersichten über Datensätze bereitstellen, komplexe Abfragen für detaillierte Geschäftsinformationen beantworten und sogar Erklärungen zu Datenmustern erstellen. Die Antworten sind auf die Art der Daten zugeschnitten und werden in textlichen Zusammenfassungen, organisierten Tabellen oder durch verschiedene Diagrammtypen wie Balken-, Linien- und Tortendiagramme oder geografische Karten für standortbezogene Daten visualisiert. Diese Funktionalität verwandelt die Dateninteraktion in eine effizientere und benutzerfreundlichere Erfahrung und schließt die Lücke zwischen natürlicher Sprache und Datenbankabfragen.",
+                    menu1_section4_title: "PDF-Berichterstellung: Automatische Dokumentation",
+                    menu1_section4_summary: "Mit dieser Funktion können Benutzer die Ergebnisse ihrer Datenabfragen in PDF-Dokumente umwandeln. Nach der Datenanalyse durch natürlichsprachliche Interaktionen kann das System die Ergebnisse, einschließlich Textdaten und Visualisierungen, automatisch in einem formatierten Bericht zusammenstellen. Dieser Prozess erleichtert die effiziente Erstellung von Berichten, die zur Überprüfung, gemeinsamen Nutzung oder Archivierung bereitstehen und die Produktivität und Kommunikation von Erkenntnissen verbessern.",
+                    menu2_btn_check_metadata: "Metadaten kontrollieren",
+                    menu2_btn_use_testdata: "Testdaten verwenden",
+                    menu2_inst: "Laden Sie die Datendateien im CSV-Format hoch, mit denen Sie in natürlicher Sprache interagieren möchten",
+                    menu2_dropzone_msg: "Ziehen Sie die CSV-Datei(en) hierher, oder klicken Sie zum Auswählen",
+                    menu2_selecedFile_msg: "Ausgewählte Files:",
+                    menu2_selectedfile_name: "Dateiname",
+                    menu2_selectedfile_action: "Aktion",
+                    menu2_upload_all_btn: "Hochladen Alle",
+                    menu2_metadata_tooltip: "Metadaten hinzufügen Beschreibung",
+                    menu2_metadadesc_title: "Metadatenbeschreibung",
+                    menu2_metadata_table_column: "Rubriken",
+                    menu2_metadata_table_desc: "Beschreibung",
+                    menu2_save:"Speichern",
+                    menu2_cancel:"Abbrechen",
+                    menu3_summary:"Bitte stellen Sie Ihre Fragen. Ich werde sie in SQL-Abfragen umsetzen und Ihnen die entsprechenden Informationen zur Verfügung stellen."
+                },
+            },
+        },
+        lng: 'en',
+        fallbackLng: 'en',
+        interpolation: {
+            escapeValue: false,
+        },
+    });
+
+export default i18n;
