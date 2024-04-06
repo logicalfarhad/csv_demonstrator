@@ -8,6 +8,7 @@ import SvgComponent from "../../components/SvgComponent";
 import { useNavigate } from "react-router-dom";
 import NavbarMenu from "../../components/NavbarMenu/NavbarMenu";
 import { useKeycloak } from "@react-keycloak/web";
+import { Button, Col, Row } from 'react-bootstrap';
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const Prompting = () => {
   const { keycloak } = useKeycloak();
@@ -205,11 +206,62 @@ const Prompting = () => {
               ))}
               <br />
           </div>
-        ) : (
-          <IntroSection />
+        ) : (<IntroSection />
         )}
 
         <form onSubmit={handleSubmit}>
+          {chatLog.length == 0 && (
+            <div>
+              <p>Sample Questions</p>
+                  <div>
+                      <Row>
+                      <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                        <Col className="d-grid gap-2" md={4} xs={6}>
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q1').textContent)} type="submit">
+                            <div>
+                              <div><strong>Dataset explanation</strong></div>
+                              <div style={{marginTop:10}} id="q1">Explain the dataset?</div>
+                            </div>
+                          </Button>
+                        </Col>
+                        <Col className="d-grid gap-2" md={4} xs={6}>
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q2').textContent)} type="submit">
+                            <div>
+                              <div><strong>10 rows of your dataset</strong></div>
+                              <div style={{marginTop:10}} id="q2">Provide me first 10 rows of any table?</div>
+                            </div>
+                          </Button>
+                        </Col>
+                        <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                        {/* Repeat the structure for other buttons */}
+                      </Row>
+                      <br />
+                      <br />
+                      <Row>
+                      <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                        <Col className="d-grid gap-2" md={4} xs={6}>
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)} type="submit">
+                            <div>
+                              <div><strong>Top selling products</strong></div>
+                              <div style={{marginTop:10}} id="q3">Provide me complete details of top 10products which are most selling?</div>
+                            </div>
+                          </Button>
+                        </Col>
+                        <Col className="d-grid gap-2" md={4} xs={6}>
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)} type="submit">
+                            <div>
+                              <div><strong>What kind of categories are there?</strong></div>
+                              <div style={{marginTop:10}} id="q4">Provide me list of product categories and colors?</div>
+                            </div>
+                          </Button>
+                        </Col>
+                        <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                        {/* Repeat the structure for other buttons */}
+                      </Row>
+                    </div>
+            </div>
+          )}
+
           <div className="inputPromptWrapper">
             <input
               name="inputPrompt"
