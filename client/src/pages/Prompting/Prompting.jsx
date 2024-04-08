@@ -217,7 +217,7 @@ const Prompting = () => {
                       <Row>
                       <Col className="d-grid gap-2" md={2} xs={0}></Col>
                         <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q1').textContent)} type="submit">
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q1').textContent)}>
                             <div>
                               <div><strong>Dataset explanation</strong></div>
                               <div style={{marginTop:10}} id="q1">Explain the dataset?</div>
@@ -225,7 +225,7 @@ const Prompting = () => {
                           </Button>
                         </Col>
                         <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q2').textContent)} type="submit">
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q2').textContent)}>
                             <div>
                               <div><strong>10 rows of your dataset</strong></div>
                               <div style={{marginTop:10}} id="q2">Provide me first 10 rows of any table?</div>
@@ -240,7 +240,7 @@ const Prompting = () => {
                       <Row>
                       <Col className="d-grid gap-2" md={2} xs={0}></Col>
                         <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)} type="submit">
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)}>
                             <div>
                               <div><strong>Top selling products</strong></div>
                               <div style={{marginTop:10}} id="q3">Provide me complete details of top 10products which are most selling?</div>
@@ -248,7 +248,7 @@ const Prompting = () => {
                           </Button>
                         </Col>
                         <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)} type="submit">
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)}>
                             <div>
                               <div><strong>What kind of categories are there?</strong></div>
                               <div style={{marginTop:10}} id="q4">Provide me list of product categories and colors?</div>
