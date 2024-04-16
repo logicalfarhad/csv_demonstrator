@@ -4,6 +4,7 @@ import L from 'leaflet';
 import Form from 'react-bootstrap/Form';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
+import { useKeycloak } from "@react-keycloak/web";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,8 +34,9 @@ ChartJS.register(
 
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
-const getCityCoordinates = async (cityName) => {
-  let bearer = 'Bearer ' + window.localStorage.getItem("token");
+
+const getCityCoordinates = async (cityName, accessToken) => {
+  // let bearer = 'Bearer ' + window.localStorage.getItem("token");
   try {
     const response = await fetch(backend + '/misc/getCoordinates', {
       method: 'POST',
@@ -42,7 +44,7 @@ const getCityCoordinates = async (cityName) => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': bearer
+        'Authorization': `Bearer ${accessToken}`
       }
     });
     let data = await response.json();
@@ -54,7 +56,8 @@ const getCityCoordinates = async (cityName) => {
 }
 
 const Chart = ({ data }) => {
-    const mapContainerRef = useRef(null);
+  const { keycloak } = useKeycloak();
+  const mapContainerRef = useRef(null);
   const [selectedXAxis, setSelectedXAxis] = useState('');
   const [selectedYAxis, setSelectedYAxis] = useState('');
   const [selectedChartType, setSelectedChartType] = useState('bar');
@@ -74,7 +77,14 @@ const Chart = ({ data }) => {
 
   useEffect(() => {
     const fetchData = async () => {
-      let bearer = 'Bearer ' + window.localStorage.getItem("token");
+      // let bearer = 'Bearer ' + window.localStorage.getItem("token");
+      // const { keycloak } = useKeycloak();
+      // let bearer = 'Bearer ' + window.localStorage.getItem("token");
+      if (!keycloak || !keycloak.authenticated) {
+        // Handle unauthenticated user
+        return;
+      }
+      const accessToken = keycloak.token;
       try {
         // Check if both X and Y axes are selected
         if (selectedXAxis !== '' && selectedYAxis !== '' && data) {
@@ -82,7 +92,7 @@ const Chart = ({ data }) => {
             method: 'POST',
             headers: {
               "Content-Type": "application/json",
-              'Authorization': bearer
+              'Authorization': `Bearer ${accessToken}`
             },
             body: JSON.stringify({
               xAxis: selectedXAxis,
@@ -267,7 +277,12 @@ const Chart = ({ data }) => {
         data.forEach(async (item) => {
           try {
             if (item.location || item.Location) {
-              const { latitude, longitude } = await getCityCoordinates(item.location || item.Location);
+              if (!keycloak || !keycloak.authenticated) {
+                // Handle unauthenticated user
+                return;
+              }
+              const accessToken = keycloak.token;
+              const { latitude, longitude } = await getCityCoordinates(item.location || item.Location , accessToken);
 
               if (latitude && longitude) {
                 const cityMarker = L.marker([latitude, longitude]).addTo(map);

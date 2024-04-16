@@ -240,10 +240,10 @@ const Prompting = () => {
                       <Row>
                       <Col className="d-grid gap-2" md={2} xs={0}></Col>
                         <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)}>
+                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q3').textContent)}>
                             <div>
                               <div><strong>Top selling products</strong></div>
-                              <div style={{marginTop:10}} id="q3">Provide me complete details of top 10products which are most selling?</div>
+                              <div style={{marginTop:10}} id="q3">Provide me complete details of top 10 products which are most selling?</div>
                             </div>
                           </Button>
                         </Col>
