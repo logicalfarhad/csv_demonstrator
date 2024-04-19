@@ -292,6 +292,13 @@
     /* align-items: center; */
     column-gap: 25px;
   }
+
+  .accordion-button{
+    padding-left: 0px !important;
+    padding-top: 0px !important;
+    padding-bottom: 0px !important;
+    padding-right: 10px !important;
+  }
   
   .userSVG {
     transform: scale(0.6);

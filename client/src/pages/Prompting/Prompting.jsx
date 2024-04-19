@@ -8,7 +8,7 @@ import SvgComponent from "../../components/SvgComponent";
 import { useNavigate } from "react-router-dom";
 import NavbarMenu from "../../components/NavbarMenu/NavbarMenu";
 import { useKeycloak } from "@react-keycloak/web";
-import { Button, Col, Row } from 'react-bootstrap';
+import { Button, Col, Row, Accordion } from 'react-bootstrap';
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const Prompting = () => {
   const { keycloak } = useKeycloak();
@@ -20,7 +20,7 @@ const Prompting = () => {
   const [err, setErr] = useState(false);
   const [responseFromAPI, setReponseFromAPI] = useState(false);
   const navigate = useNavigate();
-
+  const [activeKey, setActiveKey] = useState(null);
   const chatLogRef = useRef(null);
   
   const handleSubmit = (e) => {
@@ -141,70 +141,90 @@ const Prompting = () => {
     setShowSuggestions(false);
   };
 
+
+  useEffect(() => {
+    // Update the active key whenever chatLog changes
+    if (chatLog.length > 0) {
+      setActiveKey(chatLog.length - 1);
+    }
+  }, [chatLog]);
+
+  const handleAccordionSelect = (newActiveKey) => {
+    setActiveKey(newActiveKey);
+  };
+
+
   return (
     <>
     <NavbarMenu />
       <section className="chatBox">
         {chatLog.length > 0 ? (
           <div className="chatLogWrapper">
-            {chatLog.length > 0 &&
-              chatLog.map((chat, idx) => (
-                <div
-                  className="chatLog"
-                  key={idx}
-                  ref={chatLogRef}
-                  id={`navPrompt-${chat.chatPrompt.replace(
-                    /[^a-zA-Z0-9]/g,
-                    "-"
-                  )}`}
-                >
-                  <div className="chatPromptMainContainer">
-                    <div className="chatPromptWrapper">
-                      <Avatar bg="#005b7f" className="userSVG">
-                        <svg
-                          stroke="white"
-                          fill="none"
-                          strokeWidth={1.9}
-                          viewBox="0 0 24 24"
-                          // strokeLinecap="round"
-                          // strokeLinejoin="round"
-                          className="h-6 w-6"
-                          height={40}
-                          width={40}
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                          <circle cx={12} cy={7} r={4} />
-                        </svg>
-                      </Avatar>
-                      <div id="chatPrompt">{chat.chatPrompt}</div>
-                    </div>
-                  </div>
+            <Accordion activeKey={activeKey} onSelect={handleAccordionSelect}>
+              {chatLog.length > 0 &&
+                chatLog.map((chat, idx) => (
+                  <Accordion.Item
+                    className="chatLog"
+                    key={idx}
+                    eventKey={idx}
+                    ref={chatLogRef}
+                    id={`navPrompt-${chat.chatPrompt.replace(
+                      /[^a-zA-Z0-9]/g,
+                      "-"
+                    )}`}
+                  >
+                    <Accordion.Header>
 
-                  <div className="botMessageMainContainer">
-                    <div className="botMessageWrapper">
-                      <Avatar bg="#11a27f" className="openaiSVG">
-                        <SvgComponent w={41} h={41} />
-                      </Avatar>
-                      {chat.botMessage ? (
-                        <div id="botMessage">
-                          <BotResponse
-                            response={chat.botMessage}
-                            chatLogRef={chatLogRef}
-                            queryResponse={chat.queryResult}
-                            question={chat.chatPrompt}
-                          />
+                      <div className="chatPromptMainContainer">
+                        <div className="chatPromptWrapper" style={{ padding: '0 !important' }}>
+                          <Avatar bg="#005b7f" className="userSVG">
+                            <svg
+                              stroke="white"
+                              fill="none"
+                              strokeWidth={1.9}
+                              viewBox="0 0 24 24"
+                              // strokeLinecap="round"
+                              // strokeLinejoin="round"
+                              className="h-6 w-6"
+                              height={40}
+                              width={40}
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                              <circle cx={12} cy={7} r={4} />
+                            </svg>
+                          </Avatar>
+                          <div id="chatPrompt">{chat.chatPrompt}</div>
                         </div>
-                      ) : err ? (
-                        <Error err={err} />
-                      ) : (
-                        <Loading />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      </div>
+                    </Accordion.Header>
+                    <Accordion.Body style={{ padding: 0 }}>
+                      <div className="botMessageMainContainer">
+                        <div className="botMessageWrapper">
+                          <Avatar bg="#11a27f" className="openaiSVG">
+                            <SvgComponent w={41} h={41} />
+                          </Avatar>
+                          {chat.botMessage ? (
+                            <div id="botMessage">
+                              <BotResponse
+                                response={chat.botMessage}
+                                chatLogRef={chatLogRef}
+                                queryResponse={chat.queryResult}
+                                question={chat.chatPrompt}
+                              />
+                            </div>
+                          ) : err ? (
+                            <Error err={err} />
+                          ) : (
+                            <Loading />
+                          )}
+                        </div>
+                      </div>
+                    </Accordion.Body>
+                  </Accordion.Item>
+                ))}
               <br />
+            </Accordion>
           </div>
         ) : (<IntroSection />
         )}
@@ -213,52 +233,52 @@ const Prompting = () => {
           {chatLog.length == 0 && (
             <div>
               <p>Sample Questions</p>
-                  <div>
-                      <Row>
-                      <Col className="d-grid gap-2" md={2} xs={0}></Col>
-                        <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q1').textContent)}>
-                            <div>
-                              <div><strong>Dataset explanation</strong></div>
+              <div>
+                <Row>
+                  <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                  <Col className="d-grid gap-2" md={4} xs={6}>
+                    <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q1').textContent)}>
+                      <div>
+                        <div><strong>Dataset explanation</strong></div>
                               <div style={{marginTop:10}} id="q1">Explain the dataset?</div>
-                            </div>
-                          </Button>
-                        </Col>
-                        <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q2').textContent)}>
-                            <div>
-                              <div><strong>10 rows of your dataset</strong></div>
+                      </div>
+                    </Button>
+                  </Col>
+                  <Col className="d-grid gap-2" md={4} xs={6}>
+                    <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q2').textContent)}>
+                      <div>
+                        <div><strong>10 rows of your dataset</strong></div>
                               <div style={{marginTop:10}} id="q2">Provide me first 10 rows of any table?</div>
-                            </div>
-                          </Button>
-                        </Col>
-                        <Col className="d-grid gap-2" md={2} xs={0}></Col>
-                        {/* Repeat the structure for other buttons */}
-                      </Row>
-                      <br />
-                      <br />
-                      <Row>
-                      <Col className="d-grid gap-2" md={2} xs={0}></Col>
-                        <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q3').textContent)}>
-                            <div>
-                              <div><strong>Top selling products</strong></div>
+                      </div>
+                    </Button>
+                  </Col>
+                  <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                  {/* Repeat the structure for other buttons */}
+                </Row>
+                <br />
+                <br />
+                <Row>
+                  <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                  <Col className="d-grid gap-2" md={4} xs={6}>
+                    <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q3').textContent)}>
+                      <div>
+                        <div><strong>Top selling products</strong></div>
                               <div style={{marginTop:10}} id="q3">Provide me complete details of top 10 products which are most selling?</div>
-                            </div>
-                          </Button>
-                        </Col>
-                        <Col className="d-grid gap-2" md={4} xs={6}>
-                          <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)}>
-                            <div>
-                              <div><strong>What kind of categories are there?</strong></div>
+                      </div>
+                    </Button>
+                  </Col>
+                  <Col className="d-grid gap-2" md={4} xs={6}>
+                    <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)}>
+                      <div>
+                        <div><strong>What kind of categories are there?</strong></div>
                               <div style={{marginTop:10}} id="q4">Provide me list of product categories and colors?</div>
-                            </div>
-                          </Button>
-                        </Col>
-                        <Col className="d-grid gap-2" md={2} xs={0}></Col>
-                        {/* Repeat the structure for other buttons */}
-                      </Row>
-                    </div>
+                      </div>
+                    </Button>
+                  </Col>
+                  <Col className="d-grid gap-2" md={2} xs={0}></Col>
+                  {/* Repeat the structure for other buttons */}
+                </Row>
+              </div>
             </div>
           )}
 
@@ -296,18 +316,18 @@ const Prompting = () => {
               </svg>
             </button>
 
-      {/* Suggestions */}
-      {showSuggestions && (
-        <div className="suggestionsWrapper">
-          <div className="suggestions">
-          {suggestions.slice().reverse().map((suggest, index) => (
-  <div key={index} className="suggestion inputPrompttTextarea" onMouseDown={() => handleSuggestionClick(suggest)}>
-    {suggest}
-  </div>
-))}
-          </div>
-        </div>
-      )}
+            {/* Suggestions */}
+            {showSuggestions && (
+              <div className="suggestionsWrapper">
+                <div className="suggestions">
+                  {suggestions.slice().reverse().map((suggest, index) => (
+                    <div key={index} className="suggestion inputPrompttTextarea" onMouseDown={() => handleSuggestionClick(suggest)}>
+                      {suggest}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
           </div>
         </form>

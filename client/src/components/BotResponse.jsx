@@ -42,7 +42,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
     zIndex: isFullScreen && '9999',
     left: isFullScreen&& '0',
     top: isFullScreen && '0',
-    backgroundColor: isFullScreen && 'white',
+    backgroundColor: "rgb(255, 255, 255)",
     transition: 'all 0.5s ease', // optional: add a transition for a smooth effect
   };
 
