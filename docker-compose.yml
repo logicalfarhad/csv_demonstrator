@@ -112,7 +112,7 @@ services:
       - "--http-port=8080"
       - "--proxy=edge"
       - "--hostname-strict=false"
-      - "--hostname=localhost"
+#      - "--hostname=localhost"
       - "--hostname-strict-https=false"
       - "--hostname-path=/keycloak"
       - "--http-relative-path=/keycloak"
