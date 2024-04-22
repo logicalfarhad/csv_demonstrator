@@ -5,11 +5,16 @@ import html2canvas from 'html2canvas';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import { Row, Col } from 'react-bootstrap';
-import { Fullscreen, FullscreenExit } from 'react-bootstrap-icons'
 
 import Chart from "./Chart"
 import PdfDocument from "./PdfDocument" 
 import ResultTable from './ResultTable';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+
 
 
 const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
@@ -40,6 +45,7 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
     height: isFullScreen && '100%', // adjust the height as needed
     position: isFullScreen && 'fixed',
     zIndex: isFullScreen && '9999',
+    paddingTop: '7px',
     left: isFullScreen&& '0',
     top: isFullScreen && '0',
     backgroundColor: "rgb(255, 255, 255)",
@@ -205,13 +211,17 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
                     ref={chartsContainerRef}
                     style={divStyle}
                   >
-                    <Button variant="outline-primary" onClick={toggleFullScreen} style={{ marginLeft: 'auto' }}>
-                      {isFullScreen ? <FullscreenExit /> : <Fullscreen />}
-                    </Button>
+                    <Tooltip title="Toggle full screen">
+                    <IconButton  onClick={toggleFullScreen} style={{ marginLeft: 'auto' }}>
+                      {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+                    </IconButton>
+                    </Tooltip>
                     {!isButtonVisible && (
-                    <Button variant="outline-primary" onClick={handleShowVisualization} style={{ marginLeft: '5px' }}>
-                      Report
-                    </Button>
+                      <Tooltip title="Generate Pdf">
+                    <IconButton  onClick={handleShowVisualization} style={{ marginLeft: '5px' }}>
+                      <PictureAsPdfIcon />
+                    </IconButton>
+                    </Tooltip>
                     )}
                     <Chart data={queryResponse} />
                   </div>
