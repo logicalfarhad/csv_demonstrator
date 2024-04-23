@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useMemo }  from 'react';
 import { MaterialReactTable, useMaterialReactTable } from 'material-react-table';
+import { createTheme, ThemeProvider } from '@mui/material';
 
 const ResultTable = ({ queryResponse }) => {
   // Extract column headers dynamically from the keys of the first item
@@ -13,7 +14,20 @@ const ResultTable = ({ queryResponse }) => {
     columns,
   });
 
-  return <MaterialReactTable table={table} />;
+  const tableTheme = useMemo(
+    () => createTheme({
+      typography: {
+        fontFamily: '',
+      },
+    }),
+    [],
+  );
+
+  return (
+    <ThemeProvider theme={tableTheme}>
+      <MaterialReactTable table={table} />
+    </ThemeProvider>
+  );
 };
 
 export default ResultTable;
