@@ -14,7 +14,7 @@ import Introduction from "./pages/Introduction/Introduction";
 function App() {
   return (
     <div className="App">
-      <ReactKeycloakProvider authClient={keycloak} LoadingComponent={(<p>Loading...</p>)} initOptions={{ checkLoginIframe: true, responseMode: 'query' }}>
+      <ReactKeycloakProvider authClient={keycloak} LoadingComponent={(<p>Loading...</p>)} initOptions={{ checkLoginIframe: false, responseMode: 'query' }}>
           <Routes>
             <Route path="/introduction" element={<PrivateRoute><Introduction /></PrivateRoute>} />
             <Route path="/data-uploading" element={<PrivateRoute><DataUploading /></PrivateRoute>} />

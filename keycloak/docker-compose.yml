@@ -1,0 +1,58 @@
+version: '3.8'
+services:
+  # PostgreSQL Container for Keycloak
+  postgres-kc:
+    image: postgres:14-alpine
+    environment:
+      TZ: Europe/Berlin
+      PGTZ: Europe/Berlin
+      POSTGRES_DB: keycloakDB
+      POSTGRES_USER: $POSTGRES_USER
+      POSTGRES_PASSWORD: $POSTGRES_PASSWORD
+    restart: unless-stopped
+    volumes:
+      - keycloak_postgres_data:/var/lib/postgresql/data
+    networks:
+      - app    
+  
+  # Keycloak local server
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_FEATURES: token-exchange
+      KC_DB: postgres
+      KC_DB_URL: "jdbc:postgresql://postgres-kc/keycloakDB"
+      KC_DB_USERNAME: $POSTGRES_USER
+      KC_DB_PASSWORD: $POSTGRES_PASSWORD
+      KEYCLOAK_ADMIN: $KEYCLOAK_ADMIN_USER
+      KEYCLOAK_ADMIN_PASSWORD: $KEYCLOAK_ADMIN_PASSWORD
+    command:
+      - "start"
+      - "--http-enabled=true"
+      - "--http-port=8080"
+      - "--proxy=edge"
+      - "--hostname-strict=false"
+#      - "--hostname=localhost"
+      - "--hostname-strict-https=false"
+    restart: unless-stopped
+    networks:
+      - app
+      - kinrw
+    ports:
+      - "8093:8080"       
+
+    volumes:
+      - ./kcthemes:/opt/keycloak/themes
+
+volumes:
+  keycloak_postgres_data:
+    driver: local
+
+
+networks:
+  app:
+    driver: bridge
+
+  kinrw:
