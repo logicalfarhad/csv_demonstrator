@@ -1,19 +1,30 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
+
 const Footer = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
+
+  // Helper function to get current year
+  const getCurrentYear = () => {
+    return new Date().getFullYear();
+  };
 
   return (
     <footer className="footer">
       <div className="container text-center">
         <div className="row">
           <div className="col">
-            <p>{t("imprint")} | {t("privacyPolicy")} | {t("termofUse")} </p>
+            <p>
+              <Link to="/imprint">{t("imprint")}</Link> |{" "}
+              <Link to="/privacy-policy">{t("privacyPolicy")}</Link> |{" "}
+              <Link to="/term-of-use">{t("termofUse")}</Link>
+            </p>
           </div>
         </div>
         <div className="row">
           <div className="col">
-            <p>&copy;Fraunhofer IAIS {new Date().getFullYear()}</p>
+            <p>&copy;Fraunhofer IAIS {getCurrentYear()}</p>
           </div>
         </div>
       </div>

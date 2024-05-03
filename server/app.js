@@ -97,30 +97,6 @@ app.use("/login", loginRouter);
 app.use("/upload",authenticateToken, uploadRouter);
 app.use("/openai",authenticateToken, openaiRouter);
 app.use("/misc", authenticateToken, miscRouter)
-
-app.get("/test", (req, res) => {
-  const personList = [
-    {
-      firstName: "John",
-      lastName: "Doe",
-      age: 30,
-      city: "New York"
-    },
-    {
-      firstName: "Jane",
-      lastName: "Smith",
-      age: 25,
-      city: "Los Angeles"
-    },
-    {
-      firstName: "Alice",
-      lastName: "Johnson",
-      age: 28,
-      city: "Chicago"
-    }
-  ];
-  return res.status(200).json(personList);
-});
 // Start the server
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

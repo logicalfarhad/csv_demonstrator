@@ -8,7 +8,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModal, metadataCheckStatus }) => {
+const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModal, metadataCheckStatus, t }) => {
   return (
     <div>
       <Dialog
@@ -17,15 +17,15 @@ const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModa
         onClose={handleCloseMetadataConfigModal}
         aria-describedby="alert-dialog-slide-description"
       >
-        <DialogTitle>{"Metadata Configuration Status"}</DialogTitle>
+        <DialogTitle>{t("metadata_configuration_status_title")}</DialogTitle>
         <DialogContent>
           {metadataCheckStatus.length > 0 ? (
             <TableContainer>
               <Table>
                 <TableHead>
                   <TableRow>
-                    <TableCell>Table Name</TableCell>
-                    <TableCell>Status</TableCell>
+                    <TableCell>{t("metadata_table_name")}</TableCell>
+                    <TableCell>{t("metadata_table_status")}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -34,9 +34,9 @@ const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModa
                       <TableCell>{item.table_name}</TableCell>
                       <TableCell>
                         {item.exists ? (
-                          <span style={{ color: 'green' }}><CheckCircleIcon /> Configured</span>
+                          <span style={{ color: 'green' }}><CheckCircleIcon /> {t("metadata_configuration_status_ok")}</span>
                         ) : (
-                          <span style={{ color: 'red' }}><CancelIcon /> Not Configured</span>
+                          <span style={{ color: 'red' }}><CancelIcon /> {t("metadata_configuration_status_not_configured")}</span>
                         )}
                       </TableCell>
                     </TableRow>
@@ -47,13 +47,13 @@ const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModa
           ) : (
             <Card>
               <CardContent>
-                <p>You have not uploaded any files</p>
+                <p>{t("menu2_nofile")}</p>
               </CardContent>
             </Card>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseMetadataConfigModal}>Cancel</Button>
+          <Button onClick={handleCloseMetadataConfigModal}>{t("menu2_cancel")}</Button>
         </DialogActions>
       </Dialog>
     </div>

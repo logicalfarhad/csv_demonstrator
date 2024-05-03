@@ -79,7 +79,11 @@ router.post("/", async (req, res) => {
             return res.status(400).send('No files were uploaded.');
         }
 
-        const uploadedFiles = req.files.csv;
+        let uploadedFiles = req.files.csv;
+        if (!Array.isArray(uploadedFiles)) {
+            uploadedFiles = [uploadedFiles]; // Convert to array if it's a single file
+        }
+       // console.log(uploadedFiles)
         for (const csvFile of uploadedFiles) {
             const tableName = csvFile.name.split('.')[0].toLowerCase();
             const uploadPath = path.join(__dirname, '..', 'uploadedfile', csvFile.name);
