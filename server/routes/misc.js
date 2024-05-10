@@ -11,79 +11,63 @@ const OpenAI = require("openai")
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-  });
+});
 
 
 const extractColumnInfo = (data) => {
-    const columnInfo = {
-
-    };
-
+    const columnInfo = {};
+  
     // Loop through the array and extract information
-    for (let i = 2; i < data.length; i++) {
-        if (data[i].trim() === '') continue;
-    
-        const matches = data[i].match(/\d+\.\s*([^:]+)\s*:\s*(.*)/);
-        if (matches) {
-          const columnName = matches[1].trim().split(" ").join("_").toLowerCase();
-          const description = matches[2].trim();
-          columnInfo[columnName] = description;
-        }
+    for (let i = 0; i < data.length; i++) {
+      if (data[i].trim() === '') continue;
+  
+      const matches = data[i].match(/([^:]+):\s*(.*)/);
+      if (matches) {
+        const columnName = matches[1]
+          .replace(/\\/g, '')
+          .trim()
+          .split(' ')
+          .join('_')
+          .toLowerCase(); // Removed backslashes
+        const description = matches[2].trim();
+        columnInfo[columnName] = description;
       }
+    }
     return columnInfo;
-}
+  };
 const getResult = async (question) => {
 
-    // const options = {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify({
-    //         prompt: question,
-    //         max_tokens: 500,
-    //         temperature: 0.5,
-    //         top_p: 0.7,
-    //         seed: 10,
-    //         top_k: 50
-    //     }),
-    // };
-
-
-
-    // try {
-    //     const response = await fetch(LlAMA_API, options);
-    //     const result = await response.json();
-    //     let description = result.choices[0].text
-    //     return description
-    // } catch (error) {
-    //     console.error('Error:', error);
-    // }
+    const options = {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json; charset=utf-8',
+            'X-Request-ID': 'rqt-coshq1l9a9ic7380t9mg',
+            'Process-Mode': 'sync',
+            'Authorization': 'Basic c2FsaTpQYXNzd29yZEAx',
+            'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify({
+            prompt: question,
+            doSample: true,
+            maxTokens: 1024,
+            numBeams: 1,
+            repPenalty: 1.2,
+            temperature: 0.7,
+            topK: 10,
+            topP: 0.6
+        })
+    };
 
     try {
-        const response = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
-            messages: [
-              {
-                "role": "system",
-                "content": question
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 500,
-            top_p: 1,
-          });
-        // const result = await response.json();
-        console.log(response.choices[0].message)
-
-        return response.choices[0].message.content;
-        // let sqlQuery = extractCode(result.choices[0].text)
-        // return sqlQuery.split("\n").join(" ")
+        const response = await fetch(LlAMA_API, options);
+        const result = await response.json();
+        let description = result.payload.data.text;
+        return description;
     } catch (error) {
         console.error('Error:', error);
     }
-
 }
+
 router.post('/saveMetadata', async (req, res) => {
     try {
         const metadata = req.body;
@@ -200,46 +184,33 @@ router.post('/getSchema', async (req, res) => {
         const [data] = await connection.query(`SELECT * from ${schema} LIMIT 3;`)
         const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
         const columnNames = rows.map((item) => item.COLUMN_NAME).join(",");
-        //const prompt = `Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.`;
-        const prompt = `[INST]<<SYS>>Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.<</SYS>> \n1. Please do not include sample value\n2. Do not include data type\n3. After column name always put colon : in the result.\n4. The exact column name and every column should be present in the result.\n5. Include the column names for which you could not generate any description.[/INST]`;
+
+        const prompt = `[INST]<<SYS>>Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.<</SYS>> \n
+                        1. Please do not include sample value\n
+                        2. Do not include data type\n
+                        3. After column name always put colon : in the result.\n
+                        4. The exact column name and every column should be present in the result.\n
+                        5. Include the column names for which you could not generate any description.[/INST]`;
+        
         console.log(prompt)
 
         let descriptions = await getResult(prompt)
         descriptions = descriptions.trim().split("\n");
         console.log("###############")
         console.log(descriptions)
-        // const columnObject = extractColumnInfo(descriptions);
+        const columnObject = extractColumnInfo(descriptions);
 
-        // rows.forEach(obj => {
-        //     obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
-        // });
-        console.log(rows);
-
-        for (let i = 0; i < rows.length; i++) {
-            // Find the corresponding description based on COLUMN_NAME
-            console.log(rows[i])
-            const matchingDescription = descriptions.find(desc => desc.startsWith(`${rows[i].COLUMN_NAME}:`));
-              // If a match is found, update the rows array
-                if (matchingDescription) {
-                rows[i].description = matchingDescription.split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
-                }
-                else{
-                    rows[i].description = 'No description available';
-                }
-            // console.log(rows[i])
-            console.log(descriptions[i])
-            // rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
-        }
-
-        console.log(rows);
-
-
+        rows.forEach(obj => {
+            obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
+        });
         return res.status(200).json(rows);
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
+
 const flattenObjectValues = (obj) => {
     return Object.values(obj).map(val => {
         if (typeof val === 'object' && !Array.isArray(val)) {
