@@ -1,4 +1,5 @@
 const express = require('express');
+const fetch = require("node-fetch");
 const router = express.Router();
 const { dbConnect } = require('../config/db');
 const { MYSQL_DATABASE, LlAMA_API } = process.env;
@@ -49,9 +50,7 @@ const getResult = async (question) => {
         const response = await fetch(LlAMA_API, options);
         const result = await response.json();
         console.log(result);
-
-        let sqlQuery = extractCode(result.payload.data.text);
-        return sqlQuery.split("\n").join(" ");
+        return result.payload.data.text;
     } catch (error) {
         console.error('Error:', error);
     }
@@ -115,35 +114,63 @@ router.post('/', async (req, res) => {
     let prompt = templateMe(template, query);
     console.log(prompt);
 
-    let sqlQuery;
-    let resultQuery;
+    let sqlQuery = extractCode(await getResult(prompt));
+    console.log("###################");
+    console.log(sqlQuery);
 
     try {
-        sqlQuery = `SELECT COUNT(*) as tableCount FROM information_schema.tables WHERE table_schema = '${MYSQL_DATABASE}';`;
-        [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
-        [rows] = await connection.query(sqlQuery);
-
-        if (rows[0].tableCount == 0) {
-            return res.status(200).json({
+        if (!sqlQuery) {
+            return res.status(400).json({
                 queryResult: false,
-                query: 'Please upload a CSV file first.'
-            });
-        } else {
-            resultQuery = await getResult(prompt);
-            console.log("###################");
-            console.log(resultQuery);
-            [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
-            [rows] = await connection.query(resultQuery);
-            return res.status(200).json({
-                queryResult: rows,
-                query: resultQuery
+                query: 'Failed to extract SQL query.'
             });
         }
+        
+        [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+        [rows] = await connection.query(sqlQuery);
+        return res.status(200).json({
+            queryResult: rows,
+            query: sqlQuery
+        });
     } catch (error) {
         console.log(error);
-        res.status(200).json({
+        res.status(500).json({
             queryResult: false,
-            query: resultQuery
+            query: sqlQuery
+        });
+    }
+});
+
+
+
+router.post('/provide-desc', async (req, res) => {
+    console.log(req.body);
+
+    let template = `You are a helpful AI assistant which will provide me with a caption for the chart based on the provided JSON data. 
+    Please generate a caption that describes the insights from the chart.`;
+
+    let question = `My xAxis contains ${req.body.xAxis}, 
+    yAxis contains ${req.body.yAxis}, 
+    and chart type is ${req.body.chartType}. 
+    My first 2 objects of JSON are ${JSON.stringify(req.body.data)}. 
+    This does not mean the entire JSON data contains these values; 
+    it contains a lot more data based on these keys so give me a short generic description, 
+    please do not return any code as output.`;
+
+    let chartDescription;
+
+    try {
+        chartDescription = await getResult(template + "\n" + question);
+        console.log(chartDescription);
+
+        return res.status(200).json({
+            description: chartDescription
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({
+            queryResult: false,
+            error: error.message // Providing the error message for better debugging
         });
     }
 });

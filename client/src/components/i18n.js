@@ -55,7 +55,7 @@ i18n
                     menu3_prompt_rows_cnt: "10 rows of your dataset",
                     menu3_prompt_rows_cnt_inst: "Provide me first 10 rows of any table?",
                     menu3_prompt_selling_products: "Top selling products",
-                    menu3_prompt_selling_top_products: "Provide me complete details of top 10products which are most selling?",
+                    menu3_prompt_selling_top_products: "Provide me complete details of top 10 products which are most selling?",
                     menu3_prompt_selling_category: "What kind of categories are there?",
                     menu3_prompt_selling_category_list: "Provide me list of product categories and colors?",
                     menu3_new_prompt: "Add new prompt",
