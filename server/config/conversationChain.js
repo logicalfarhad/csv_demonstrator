@@ -3,6 +3,8 @@ require("dotenv").config()
 const { ConversationChain } = require("langchain/chains");
 const { OpenAI } = require("langchain/llms/openai");
 const { BufferMemory } = require("langchain/memory");
+const fetch = require('node-fetch')
+const { LLM_AUTH_TOKEN, LlAMA_API } = process.env;
 
 const openai = new OpenAI({
     model: "text-davinci-003",
@@ -23,4 +25,40 @@ const createChain = () => {
     return chain;
 };
 
-module.exports = createChain;
+
+const getResult = async (prompt) => {
+    const options = {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json; charset=utf-8',
+            'X-Request-ID': 'rqt-coshq1l9a9ic7380t9mg',
+            'Process-Mode': 'sync',
+            'Authorization': `Basic ${LLM_AUTH_TOKEN}`,
+            'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify({
+            prompt: prompt,
+            doSample: true,
+            maxTokens: 1024,
+            numBeams: 1,
+            repPenalty: 1.2,
+            temperature: 0.7,
+            topK: 10,
+            topP: 0.6
+        })
+    };
+
+    try {
+        const response = await fetch(LlAMA_API, options);
+        const result = await response.json();
+        let description = result.payload.data.text;
+        return description;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+module.exports = {
+    createChain,
+    getResult
+};

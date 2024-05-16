@@ -4,11 +4,11 @@ const router = express.Router();
 const { dbConnect } = require('../config/db');
 const fetch = require('node-fetch')
 const connection = dbConnect();
-const { MYSQL_DATABASE, LlAMA_API } = process.env;
+const { MYSQL_DATABASE } = process.env;
 const historyModule = require('../config/memory');
 const OpenAI = require("openai")
 
-
+const { getResult } = require('../config/conversationChain');
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -16,57 +16,25 @@ const openai = new OpenAI({
 
 const extractColumnInfo = (data) => {
     const columnInfo = {};
-  
+
     // Loop through the array and extract information
     for (let i = 0; i < data.length; i++) {
-      if (data[i].trim() === '') continue;
-  
-      const matches = data[i].match(/([^:]+):\s*(.*)/);
-      if (matches) {
-        const columnName = matches[1]
-          .replace(/\\/g, '')
-          .trim()
-          .split(' ')
-          .join('_')
-          .toLowerCase(); // Removed backslashes
-        const description = matches[2].trim();
-        columnInfo[columnName] = description;
-      }
+        if (data[i].trim() === '') continue;
+
+        const matches = data[i].match(/([^:]+):\s*(.*)/);
+        if (matches) {
+            const columnName = matches[1]
+                .replace(/\\/g, '')
+                .trim()
+                .split(' ')
+                .join('_')
+                .toLowerCase(); // Removed backslashes
+            const description = matches[2].trim();
+            columnInfo[columnName] = description;
+        }
     }
     return columnInfo;
-  };
-const getResult = async (question) => {
-
-    const options = {
-        method: 'POST',
-        headers: {
-            'accept': 'application/json; charset=utf-8',
-            'X-Request-ID': 'rqt-coshq1l9a9ic7380t9mg',
-            'Process-Mode': 'sync',
-            'Authorization': 'Basic c2FsaTpQYXNzd29yZEAx',
-            'Content-Type': 'application/json; charset=utf-8',
-        },
-        body: JSON.stringify({
-            prompt: question,
-            doSample: true,
-            maxTokens: 1024,
-            numBeams: 1,
-            repPenalty: 1.2,
-            temperature: 0.7,
-            topK: 10,
-            topP: 0.6
-        })
-    };
-
-    try {
-        const response = await fetch(LlAMA_API, options);
-        const result = await response.json();
-        let description = result.payload.data.text;
-        return description;
-    } catch (error) {
-        console.error('Error:', error);
-    }
-}
+};
 
 router.post('/saveMetadata', async (req, res) => {
     try {
@@ -191,7 +159,7 @@ router.post('/getSchema', async (req, res) => {
                         3. After column name always put colon : in the result.\n
                         4. The exact column name and every column should be present in the result.\n
                         5. Include the column names for which you could not generate any description.[/INST]`;
-        
+
         console.log(prompt)
 
         let descriptions = await getResult(prompt)

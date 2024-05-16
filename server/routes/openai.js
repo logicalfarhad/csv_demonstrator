@@ -1,8 +1,8 @@
 const express = require('express');
-const fetch = require("node-fetch");
 const router = express.Router();
 const { dbConnect } = require('../config/db');
-const { MYSQL_DATABASE, LlAMA_API } = process.env;
+const { getResult } = require('../config/conversationChain');
+const { MYSQL_DATABASE } = process.env;
 const connection = dbConnect();
 
 const templateMe = (template, replacement) => {
@@ -22,37 +22,6 @@ const extractCode = (inputString) => {
         return extractedCode.trim();
     } else {
         return null;
-    }
-}
-
-const getResult = async (question) => {
-    const options = {
-        method: 'POST',
-        headers: {
-            'accept': 'application/json; charset=utf-8',
-            'Process-Mode': 'sync',
-            'Authorization': 'Basic c2FsaTpQYXNzd29yZEAx',
-            'Content-Type': 'application/json; charset=utf-8',
-        },
-        body: JSON.stringify({
-            prompt: question,
-            doSample: true,
-            maxTokens: 1024,
-            numBeams: 1,
-            repPenalty: 1.2,
-            temperature: 0.3,
-            topK: 10,
-            topP: 0.6
-        })
-    };
-
-    try {
-        const response = await fetch(LlAMA_API, options);
-        const result = await response.json();
-        console.log(result);
-        return result.payload.data.text;
-    } catch (error) {
-        console.error('Error:', error);
     }
 }
 
@@ -115,9 +84,6 @@ router.post('/', async (req, res) => {
     console.log(prompt);
 
     let sqlQuery = extractCode(await getResult(prompt));
-    console.log("###################");
-    console.log(sqlQuery);
-
     try {
         if (!sqlQuery) {
             return res.status(400).json({
@@ -125,7 +91,7 @@ router.post('/', async (req, res) => {
                 query: 'Failed to extract SQL query.'
             });
         }
-        
+
         [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
         [rows] = await connection.query(sqlQuery);
         return res.status(200).json({
@@ -144,25 +110,21 @@ router.post('/', async (req, res) => {
 
 
 router.post('/provide-desc', async (req, res) => {
-    console.log(req.body);
 
     let template = `You are a helpful AI assistant which will provide me with a caption for the chart based on the provided JSON data. 
     Please generate a caption that describes the insights from the chart.`;
 
-    let question = `My xAxis contains ${req.body.xAxis}, 
-    yAxis contains ${req.body.yAxis}, 
-    and chart type is ${req.body.chartType}. 
-    My first 2 objects of JSON are ${JSON.stringify(req.body.data)}. 
-    This does not mean the entire JSON data contains these values; 
-    it contains a lot more data based on these keys so give me a short generic description, 
-    please do not return any code as output.`;
+    let question = `1. My xAxis contains ${req.body.xAxis}, 
+2. yAxis contains ${req.body.yAxis}, 
+3. and chart type is ${req.body.chartType}. 
+4. My first 2 objects of JSON data are ${JSON.stringify(req.body.data)}. 
+5. This does not mean the entire JSON data contains only these values; 
+   it contains a lot more data based on these keys, so provide a short generic chart description (caption) in one short line.`;
 
     let chartDescription;
 
     try {
-        chartDescription = await getResult(template + "\n" + question);
-        console.log(chartDescription);
-
+        chartDescription = await getResult(template + "\n" + question); // Call getResult with template and question
         return res.status(200).json({
             description: chartDescription
         });
@@ -174,6 +136,7 @@ router.post('/provide-desc', async (req, res) => {
         });
     }
 });
+
 
 
 module.exports = router;
