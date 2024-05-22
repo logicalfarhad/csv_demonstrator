@@ -1,8 +1,7 @@
-const { MYSQL_DATABASE } = process.env;
 const db = require('../../config/db');
 const connection = db.dbConnect();
-const generateSqlQueries = async (tableName, headers, data) => {
-    let tableSchema = `USE ${MYSQL_DATABASE};\n`;
+const generateSqlQueries = async (tableName, headers, data, databaseName) => {
+    let tableSchema = `CREATE DATABASE IF NOT EXISTS ${databaseName}; USE ${databaseName};\n`;
     tableSchema += `DROP TABLE IF EXISTS ${tableName};\n`;
     tableSchema += `CREATE TABLE ${tableName} (\n`;
 

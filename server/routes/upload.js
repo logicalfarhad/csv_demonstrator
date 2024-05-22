@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require("../config/db");
 const path = require("path");
 const fileUpload = require('express-fileupload');
-const { MYSQL_DATABASE } = process.env;
 
 const csvHandler = require('./utils/csvHandler');
 const databaseHandler = require('./utils/databaseHandler');
@@ -26,7 +25,7 @@ router.post("/defaultupload", async (req, res) => {
             const uploadPath = path.join(directoryPath, csvFile);
             try {
                 const { headers, data } = await csvHandler.readCsvFile(uploadPath);
-                const { tableSchema, insertStatement } = await databaseHandler.generateSqlQueries(tableName, headers, data);
+                const { tableSchema, insertStatement } = await databaseHandler.generateSqlQueries(tableName, headers, data, req.databaseName);
                 await connection.query(tableSchema);
                 await connection.query(insertStatement);
             } catch (error) {
@@ -43,9 +42,10 @@ router.post("/defaultupload", async (req, res) => {
 // Check metadata
 router.post("/checkmetadata", async (req, res) => {
     try {
-        await connection.query(`USE ${MYSQL_DATABASE};`);
+        await connection.query(`USE ${req.databaseName};`);
         const [rows] = await connection.query('SHOW TABLES;');
-        const result = databaseHandler.checkMetadataTableExists(rows.map(item => item.Tables_in_demonstrator));
+        let tableString = `Tables_in_${req.databaseName}`
+        const result = databaseHandler.checkMetadataTableExists(rows.map(item => item[tableString]));
         return res.status(200).json(result);
     } catch (error) {
         console.error(error);
@@ -58,8 +58,8 @@ router.get("/gettables", async (req, res) => {
     let tableNames = [];
     try {
         for (const schema of table_list) {
-            await connection.query(`USE ${MYSQL_DATABASE};`);
-            const [rows] = await connection.query("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = ? and table_name = ?", [MYSQL_DATABASE, schema]);
+            await connection.query(`USE ${req.databaseName};`);
+            const [rows] = await connection.query("SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = ? and table_name = ?", [req.databaseName, schema]);
             tableNames.push(rows);
         }
         const commonColumnNames = findCommonColumns(tableNames);
@@ -89,7 +89,7 @@ router.post("/", async (req, res) => {
             const uploadPath = path.join(__dirname, '..', 'uploadedfile', csvFile.name);
             await csvFile.mv(uploadPath);
             const { headers, data } = await csvHandler.readCsvFile(uploadPath);
-            const { tableSchema, insertStatement } = await databaseHandler.generateSqlQueries(tableName, headers, data);
+            const { tableSchema, insertStatement } = await databaseHandler.generateSqlQueries(tableName, headers, data, req.databaseName);
             try {
                 await connection.query(tableSchema);
                 await connection.query(insertStatement);

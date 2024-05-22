@@ -14,7 +14,7 @@ const fetch = require('node-fetch');
 
 const { dbConnect } = require('./config/db');
 const historyModule = require('./config/memory');
-const { MYSQL_DATABASE, LlAMA_API } = process.env;
+const { LlAMA_API } = process.env;
 
 const app = express();
 
@@ -79,6 +79,8 @@ const authenticateToken = async (req, res, next) => {
       console.log(decoded)
       req.user = decoded.preferred_username;
       console.log(req.user);
+      req.databaseName= decoded.email.replace('@', '_').replace('.', '_');
+      console.log(req.databaseName)
       next();
     });
   } catch (error) {
