@@ -1,25 +1,5 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
-const mongoose = require("mongoose");
-
-const MONGO_URI = `mongodb://${process.env.MONGO_HOST}/${process.env.MONGO_DATABASE}`;
-//const MONGO_URI = `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
-
-exports.mongoConnect = () => {
-    mongoose
-        .connect(MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        })
-        .then(() => {
-            console.log("Successfully connected to MongoDB");
-        })
-        .catch((error) => {
-            console.log("MongoDB connection failed. Exiting now...");
-            console.error(error);
-            process.exit(1);
-        });
-};
 
 exports.dbConnect = () => {
     const connection = mysql.createPool({

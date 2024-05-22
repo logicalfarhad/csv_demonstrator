@@ -14,14 +14,11 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=demonstrator
-      - MONGO_HOST=mongodb_container
-      - MONGO_DATABASE=chatgpt
       - KEYCLOAK_URL=https://auth.ki.nrw/
       - KEYCLOAK_REALM=test
     env_file:
       - ./server/.env
     depends_on:
-      - mongodb
       - mysqldb
 
   frontend:
@@ -44,7 +41,7 @@ services:
       - backend
 
   mysqldb:
-    container_name: mysqldb_container
+    container_name: llm_mysqldb_container
     image: mysql:8.0
     restart: always
     networks:
@@ -66,23 +63,9 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - mongodb
       - mysqldb
       - backend
       - frontend
-  mongodb:
-    container_name: mongodb_container
-    image: mongo:jammy
-    restart: always
-    networks:
-      - app
-    volumes:
-      - mongodb_data:/data/db
- 
-
-volumes:
-  mongodb_data:
-
 
 networks:
   app:

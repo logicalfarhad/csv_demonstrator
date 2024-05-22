@@ -4,8 +4,6 @@ const express = require("express");
 const bodyParser = require('body-parser')
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
-const signupRouter = require("./routes/signup");
-const loginRouter = require("./routes/login");
 const uploadRouter = require("./routes/upload")
 const openaiRouter = require('./routes/openai')
 const miscRouter = require('./routes/misc')
@@ -28,8 +26,6 @@ if (process.env["NODE_ENV"] === "development") {
 } else {
   console.log("prod mode!");
 }
-// Connect to the database
-db.mongoConnect();
 
 // Set up middleware
 app.use(bodyParser.json());
@@ -90,8 +86,6 @@ const authenticateToken = async (req, res, next) => {
     });
   }
 };
-app.use("/signup", signupRouter);
-app.use("/login", loginRouter);
 //app.use(authenticateToken);
 
 // API routes
