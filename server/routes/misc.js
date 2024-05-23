@@ -4,7 +4,6 @@ const router = express.Router();
 const { dbConnect } = require('../config/db');
 const fetch = require('node-fetch')
 const connection = dbConnect();
-const { MYSQL_DATABASE } = process.env;
 const historyModule = require('../config/memory');
 const OpenAI = require("openai")
 
@@ -42,7 +41,7 @@ router.post('/saveMetadata', async (req, res) => {
         const table_name = `metadata_${metadata.tableName.toLowerCase()}`;
 
         const metadataSql = `
-            USE ${MYSQL_DATABASE};
+            USE ${req.databaseName};
             DROP TABLE IF EXISTS ${table_name};
             CREATE TABLE ${table_name} (Column_Name VARCHAR(50) NOT NULL, Description VARCHAR(200), PRIMARY KEY (Column_Name));
         `;
@@ -55,7 +54,7 @@ router.post('/saveMetadata', async (req, res) => {
         const sql = `${metadataSql} ${insertSql}`;
         await connection.query(sql);
 
-        const descriptionQuery = `SELECT * FROM ${MYSQL_DATABASE}.${table_name};`;
+        const descriptionQuery = `SELECT * FROM ${req.databaseName}.${table_name};`;
         const [rows] = await connection.query(descriptionQuery);
 
         const descriptionString = rows
@@ -123,16 +122,16 @@ router.post("/getCoordinates", async (req, res) => {
 router.post('/truncate', async (req, res) => {
     try {
 
-        await connection.query(`USE ${MYSQL_DATABASE};`);
+        await connection.query(`USE ${req.databaseName};`);
         await connection.query('SET FOREIGN_KEY_CHECKS=0');
         let sql = `SELECT CONCAT('DROP TABLE ', TABLE_NAME, ';')
             FROM INFORMATION_SCHEMA.tables
-            WHERE TABLE_SCHEMA = '${MYSQL_DATABASE}';`;
+            WHERE TABLE_SCHEMA = '${req.databaseName}';`;
 
         let [rows] = await connection.query(sql);
         for (const item of rows) {
             for (const sql of Object.values(item)) {
-                await connection.query(`use ${MYSQL_DATABASE};${sql}`);
+                await connection.query(`use ${req.databaseName};${sql}`);
             }
         }
         await connection.query('SET FOREIGN_KEY_CHECKS=1');
@@ -147,7 +146,8 @@ router.post('/truncate', async (req, res) => {
 router.post('/getSchema', async (req, res) => {
     let schema = req.body.schema;
     try {
-        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${MYSQL_DATABASE}' and table_name="${schema.toLowerCase()}"`;
+        await connection.query(`USE ${req.databaseName};`);
+        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${req.databaseName}' and table_name="${schema.toLowerCase()}"`;
         const [rows] = await connection.query(columnQuery);
         const [data] = await connection.query(`SELECT * from ${schema} LIMIT 3;`)
         const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
@@ -167,7 +167,7 @@ router.post('/getSchema', async (req, res) => {
         console.log("###############")
         console.log(descriptions)
         const columnObject = extractColumnInfo(descriptions);
-
+        console.log(columnObject)
         rows.forEach(obj => {
             obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
         });

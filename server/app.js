@@ -4,17 +4,16 @@ const express = require("express");
 const bodyParser = require('body-parser')
 const cors = require("cors");
 const jwt = require('jsonwebtoken');
-const signupRouter = require("./routes/signup");
-const loginRouter = require("./routes/login");
 const uploadRouter = require("./routes/upload")
 const openaiRouter = require('./routes/openai')
 const miscRouter = require('./routes/misc')
 const db = require("./config/db");
 const fetch = require('node-fetch');
+const crypto = require('crypto');
 
 const { dbConnect } = require('./config/db');
 const historyModule = require('./config/memory');
-const { MYSQL_DATABASE, LlAMA_API } = process.env;
+const { LlAMA_API } = process.env;
 
 const app = express();
 
@@ -28,8 +27,6 @@ if (process.env["NODE_ENV"] === "development") {
 } else {
   console.log("prod mode!");
 }
-// Connect to the database
-db.mongoConnect();
 
 // Set up middleware
 app.use(bodyParser.json());
@@ -79,6 +76,10 @@ const authenticateToken = async (req, res, next) => {
       console.log(decoded)
       req.user = decoded.preferred_username;
       console.log(req.user);
+      const uniqueId = decoded.sub;
+      const hash = crypto.createHash('md5').update(uniqueId).digest('hex');
+      req.databaseName= `db_${hash}`;
+      console.log(req.databaseName)
       next();
     });
   } catch (error) {
@@ -88,8 +89,6 @@ const authenticateToken = async (req, res, next) => {
     });
   }
 };
-app.use("/signup", signupRouter);
-app.use("/login", loginRouter);
 //app.use(authenticateToken);
 
 // API routes
@@ -101,3 +100,5 @@ app.use("/misc", authenticateToken, miscRouter)
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
+
+

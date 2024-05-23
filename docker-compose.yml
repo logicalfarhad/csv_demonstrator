@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   backend:
-    container_name: backend_container
+    container_name: llm_backend_container
     restart: always
     pull_policy: build
     build:
@@ -14,25 +14,22 @@ services:
       - MYSQL_USER=root
       - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=demonstrator
-      - MONGO_HOST=mongodb_container
-      - MONGO_DATABASE=chatgpt
       - KEYCLOAK_URL=https://auth.ki.nrw/
-      - KEYCLOAK_REALM=test
+      - KEYCLOAK_REALM=kinrw
     env_file:
       - ./server/.env
     depends_on:
-      - mongodb
       - mysqldb
 
   frontend:
-    container_name: frontend_container
+    container_name: llm_frontend_container
     restart: always
     pull_policy: build
     environment:
       - REACT_BACKEND_API_URL=http://backend:4000
       - REACT_APP_KEYCLOAK_URL=https://auth.ki.nrw/
-      - REACT_APP_KEYCLOAK_REALM=test
-      - REACT_APP_KEYCLOAK_CLIENTID=frontend-shabbir
+      - REACT_APP_KEYCLOAK_REALM=kinrw
+      - REACT_APP_KEYCLOAK_CLIENTID=llm-insight-expert-frontend
     networks:
       - app
     build:
@@ -44,7 +41,7 @@ services:
       - backend
 
   mysqldb:
-    container_name: mysqldb_container
+    container_name: llm_mysqldb_container
     image: mysql:8.0
     restart: always
     networks:
@@ -56,7 +53,8 @@ services:
     command: --sql-mode="NO_ENGINE_SUBSTITUTION"
 
   nginx:
-    container_name: nginx_container
+    container_name: llm_nginx_container
+    restart: always
     pull_policy: build
     build:
       context: ./nginx
@@ -65,23 +63,9 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - mongodb
       - mysqldb
       - backend
       - frontend
-  mongodb:
-    container_name: mongodb_container
-    image: mongo:jammy
-    restart: always
-    networks:
-      - app
-    volumes:
-      - mongodb_data:/data/db
- 
-
-volumes:
-  mongodb_data:
-
 
 networks:
   app:

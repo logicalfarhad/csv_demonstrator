@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const { dbConnect } = require('../config/db');
 const { getResult } = require('../config/conversationChain');
-const { MYSQL_DATABASE } = process.env;
 const connection = dbConnect();
 
 const templateMe = (template, replacement) => {
@@ -41,10 +40,10 @@ const generateTableSchema = (schema) => {
 
     }).join(';')}`;
 }
-const generatePrompt = async (schema) => {
+const generatePrompt = async (schema, databaseName) => {
     let table_name = schema[schema.length - 1].tableName;
     if (table_name.startsWith('metadata_')) {
-        let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+        let [rows] = await connection.query(`USE ${databaseName};`);
         [rows] = await connection.query(`select * from ${table_name};`);
         let metadata_descirption = await generateMetadataSchema(rows)
         return `<<SYS>>In the '${table_name}' table, ${metadata_descirption}<</SYS>>`;
@@ -55,16 +54,19 @@ const generatePrompt = async (schema) => {
 
 router.post('/', async (req, res) => {
     let history = [];
-    let [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+    let [rows] = await connection.query(`USE ${req.databaseName};`);
     [rows] = await connection.query("show tables;");
 
-    let tableList = rows.map(table => table.Tables_in_demonstrator);
+    // let tableList = rows.map(table => table.Tables_in_demonstrator);
+    const key = `Tables_in_${req.databaseName}`
+    let tableList = rows.map(table => table[key]);
+
     for (const name of tableList) {
         [rows] = await connection.query(`DESCRIBE ${name};`);
         rows.push({
             tableName: name
         });
-        let desc = await generatePrompt(rows);
+        let desc = await generatePrompt(rows,req.databaseName);
         history.push(desc);
     }
 
@@ -92,7 +94,7 @@ router.post('/', async (req, res) => {
             });
         }
 
-        [rows] = await connection.query(`USE ${MYSQL_DATABASE};`);
+        [rows] = await connection.query(`USE ${req.databaseName};`);
         [rows] = await connection.query(sqlQuery);
         return res.status(200).json({
             queryResult: rows,
