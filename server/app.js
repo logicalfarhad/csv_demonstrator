@@ -9,6 +9,7 @@ const openaiRouter = require('./routes/openai')
 const miscRouter = require('./routes/misc')
 const db = require("./config/db");
 const fetch = require('node-fetch');
+const crypto = require('crypto');
 
 const { dbConnect } = require('./config/db');
 const historyModule = require('./config/memory');
@@ -75,7 +76,9 @@ const authenticateToken = async (req, res, next) => {
       console.log(decoded)
       req.user = decoded.preferred_username;
       console.log(req.user);
-      req.databaseName= decoded.email.replace('@', '_').replace('.', '_');
+      const uniqueId = decoded.sub;
+      const hash = crypto.createHash('md5').update(uniqueId).digest('hex');
+      req.databaseName= `db_${hash}`;
       console.log(req.databaseName)
       next();
     });
@@ -97,3 +100,5 @@ app.use("/misc", authenticateToken, miscRouter)
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
+
+
