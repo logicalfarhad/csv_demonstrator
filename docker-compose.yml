@@ -15,7 +15,7 @@ services:
       - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=demonstrator
       - KEYCLOAK_URL=https://auth.ki.nrw/
-      - KEYCLOAK_REALM=test
+      - KEYCLOAK_REALM=kinrw
     env_file:
       - ./server/.env
     depends_on:
@@ -28,8 +28,8 @@ services:
     environment:
       - REACT_BACKEND_API_URL=http://backend:4000
       - REACT_APP_KEYCLOAK_URL=https://auth.ki.nrw/
-      - REACT_APP_KEYCLOAK_REALM=test
-      - REACT_APP_KEYCLOAK_CLIENTID=frontend-shabbir
+      - REACT_APP_KEYCLOAK_REALM=kinrw
+      - REACT_APP_KEYCLOAK_CLIENTID=llm-insight-expert-frontend
     networks:
       - app
     build:
