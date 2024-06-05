@@ -19,7 +19,7 @@ const Prompting = () => {
   const [inputPrompt, setInputPrompt] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
-  
+
   const [chatLog, setChatLog] = useState([]);
   const [err, setErr] = useState(false);
   const [responseFromAPI, setReponseFromAPI] = useState(false);
@@ -29,13 +29,12 @@ const Prompting = () => {
   const { t, i18n } = useTranslation();
   const handleSubmit = (e) => {
     e.preventDefault();
-
-  // Check if the entered prompt already exists
-  if (!suggestions.includes(inputPrompt)) {
-    const updatedPrompts = [...suggestions, inputPrompt];
-    localStorage.setItem('prompts', JSON.stringify(updatedPrompts));
-    setSuggestions(updatedPrompts); // Update state with the new prompts
-  }
+    // Check if the entered prompt already exists
+    if (!suggestions.includes(inputPrompt)) {
+      const updatedPrompts = [...suggestions, inputPrompt];
+      localStorage.setItem('prompts', JSON.stringify(updatedPrompts));
+      setSuggestions(updatedPrompts); // Update state with the new prompts
+    }
 
     if (!responseFromAPI) {
       if (inputPrompt.trim() !== "") {
@@ -60,7 +59,7 @@ const Prompting = () => {
               "Content-Type": "application/json",
               'Authorization': `Bearer ${accessToken}`
             },
-            body: JSON.stringify({ query: inputPrompt }),
+            body: JSON.stringify({ query: inputPrompt, locale: i18n.language }),
           });
           const data = await response.json();
           console.log(data)
@@ -160,7 +159,7 @@ const Prompting = () => {
 
   return (
     <>
-    <NavbarMenu />
+      <NavbarMenu />
       <section className="chatBox">
         {chatLog.length > 0 ? (
           <div className="chatLogWrapper">
@@ -244,13 +243,13 @@ const Prompting = () => {
                     <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q1').textContent)}>
                       <div>
                         <div><strong>{t("menu3_prompt_explain_dataset_title")}</strong></div>
-                              <div style={{marginTop:10}} id="q1">{t("menu3_prompt_explain_dataset_des")}</div>
+                        <div style={{ marginTop: 10 }} id="q1">{t("menu3_prompt_explain_dataset_des")}</div>
                       </div>
                     </Button>
                   </Col>
                   <Col className="d-grid gap-2" md={4} xs={6}>
                     <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q2').textContent)}>
-                    <div>
+                      <div>
                         <div><strong>{t("menu3_prompt_rows_cnt")}</strong></div>
                         <div style={{ marginTop: 10 }} id="q2">{t("menu3_prompt_rows_cnt_inst")}</div>
                       </div>
@@ -265,7 +264,7 @@ const Prompting = () => {
                   <Col className="d-grid gap-2" md={2} xs={0}></Col>
                   <Col className="d-grid gap-2" md={4} xs={6}>
                     <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q3').textContent)}>
-                    <div>
+                      <div>
                         <div><strong>{t("menu3_prompt_selling_products")}</strong></div>
                         <div style={{ marginTop: 10 }} id="q3">{t("menu3_prompt_selling_top_products")}</div>
                       </div>
@@ -273,7 +272,7 @@ const Prompting = () => {
                   </Col>
                   <Col className="d-grid gap-2" md={4} xs={6}>
                     <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)}>
-                    <div>
+                      <div>
                         <div><strong>{t("menu3_prompt_selling_category")}</strong></div>
                         <div style={{ marginTop: 10 }} id="q4">{t("menu3_prompt_selling_category_list")}</div>
                       </div>
@@ -303,7 +302,7 @@ const Prompting = () => {
             ></input>
             <button aria-label="form submit" type="submit">
               <svg
-              style={{rotate:'60deg'}}
+                style={{ rotate: '60deg' }}
                 fill="#005B7F"
                 width={25}
                 // height={35}

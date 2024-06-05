@@ -146,8 +146,8 @@ const PdfDocument = (props) => {
           <View wrap={false}>
           <Text style={{paddingTop:'20',color:'black'}}>Visualizations</Text>
           <Text style={{borderBottom:'3px solid black',paddingVertical:'3px'}}></Text>
-        {props.chartsImg.map((image) => (
-          <View wrap={false} style={styles.imageCenter}>
+        {props.chartsImg.map((image, index) => (
+          <View key={index} wrap={false} style={styles.imageCenter}>
             <Text style={{color: '#07115f'}}>{image.title}</Text>
             <Image style={styles.image} src={image.dataUrl} />
             <Text style={{fontSize:'12',color:'#07115f'}}>{image.description}</Text>
