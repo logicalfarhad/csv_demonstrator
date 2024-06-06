@@ -75,22 +75,24 @@ router.post('/', async (req, res) => {
     let systemMessageContent = "";
     if (locale === 'de') {
         systemMessageContent = `[INST]<<SYS>>${history.join("\n")}\n
-        1. Identifizieren Sie zwei Arten von Tabellen: Originaltabellen und Tabellen, die mit 'metadata_' beginnen. Die Metadatentabellen enthalten Beschreibungen für jede Spalte der Originaltabellen.\n
-        2. Schließen Sie Ergebnisse von Tabellen aus, die mit 'metadata_' beginnen, in der Abfrageausgabe aus.\n
-        3. Interpretieren Sie die Bedeutung jeder Spalte basierend auf den bereitgestellten Metadatenbeschreibungen. Wenn beispielsweise eine Spalte wie 'xyz' in der Originaltabelle in den Metadatentabellen der Temperatur entspricht, wählen Sie 'xyz' für temperaturbezogene Abfragen aus und nicht die 'temperature'-Spalte aus der Metadatentabelle.\n
-        4. Enthalten Sie nur bekannte Spalten aus den Schema-Definitionstabellen in der SQL-Abfrage; verwenden Sie keine unbekannten Spalten.\n
-        5. Merken Sie sich die genauen Tabellennamen aus den Originaltabellen und stellen Sie sicher, dass die Groß- und Kleinschreibung sowie die Formen konsistent sind.\n
-        6. Verwenden Sie keine Metadatentabellen in der SQL-Abfrageausgabe.\n
-        7. Geben Sie Antworten in gültigem SQL \`\`\`sql \`\`\` zusammen mit einer kurzen Beschreibung an.<</SYS>>[/INST]`;
+                1. Identifizieren Sie zwei Arten von Tabellen: Originaltabellen und Tabellen, die mit 'metadata_' beginnen. Die Metadatentabellen enthalten Beschreibungen für jede Spalte der Originaltabellen.\n
+                2. Schließen Sie Ergebnisse von Tabellen aus, die mit 'metadata_' beginnen, in der Abfrageausgabe aus.\n
+                3. Interpretieren Sie die Bedeutung jeder Spalte basierend auf den bereitgestellten Metadatenbeschreibungen. Wenn beispielsweise eine Spalte wie 'xyz' in der Originaltabelle in den Metadatentabellen der Temperatur entspricht, wählen Sie 'xyz' für temperaturbezogene Abfragen aus und nicht die 'temperature'-Spalte aus der Metadatentabelle.\n
+                4. Enthalten Sie nur bekannte Spalten aus den Schema-Definitionstabellen in der SQL-Abfrage; verwenden Sie keine unbekannten Spalten.\n
+                5. Merken Sie sich die genauen Tabellennamen aus den Originaltabellen und stellen Sie sicher, dass die Groß- und Kleinschreibung sowie die Formen konsistent sind.\n
+                6. Verwenden Sie keine Metadatentabellen in der SQL-Abfrageausgabe.\n
+                7. Geben Sie Antworten in gültigem SQL \`\`\`sql \`\`\` zusammen mit einer kurzen Beschreibung an.\n
+                8. Bitte erzeugen Sie keine MySQL-Ansicht oder temporäre Tabelle, um die SQL-Abfrageausgabe zu generieren.<</SYS>>[/INST]`;
     } else {
         systemMessageContent = `[INST]<<SYS>>${history.join("\n")}\n
-        1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n
-        2. Exclude results from tables starting with 'metadata_' in the query output.\n
-        3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table.\n
-        4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n
-        5. Remember the exact table names from original tables, ensuring consistent casing and forms.\n
-        6. Don't use any metadata tables in the SQL query output.\n
-        7. Provide answers in valid SQL \`\`\`sql \`\`\` along with small description.<</SYS>>[/INST]`;
+                1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n
+                2. Exclude results from tables starting with 'metadata_' in the query output.\n
+                3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table.\n
+                4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n
+                5. Remember the exact table names from original tables, ensuring consistent casing and forms.\n
+                6. Don't use any metadata tables in the SQL query output.\n
+                7. Provide answers in valid SQL \`\`\`sql \`\`\` along with small description.\n
+                8. Please don't generate any MySQL view, or temp table to generate the SQL query output.<</SYS>>[/INST]`;
     }
     const systemMessage = {
         role: "system",
