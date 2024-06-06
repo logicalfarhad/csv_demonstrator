@@ -26,18 +26,18 @@ const createChain = () => {
 };
 
 
-const getResult = async (prompt) => {
+const getResult = async (messages) => {
     const options = {
         method: 'POST',
         headers: {
             'accept': 'application/json; charset=utf-8',
-            'X-Request-ID': 'rqt-coshq1l9a9ic7380t9mg',
+            'X-Request-ID': 'rqt-cpg9arl9a9ic73886190',
             'Process-Mode': 'sync',
             'Authorization': `Basic ${LLM_AUTH_TOKEN}`,
             'Content-Type': 'application/json; charset=utf-8',
         },
         body: JSON.stringify({
-            prompt: prompt,
+            prompts: messages,
             doSample: true,
             maxTokens: 1024,
             numBeams: 1,

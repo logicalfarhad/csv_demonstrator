@@ -65,11 +65,11 @@ const Chart = ({ data }) => {
 
   const handleXAxisChange = (event) => {
     setSelectedXAxis(event.target.value);
-      };
+  };
 
   const handleYAxisChange = (event) => {
     setSelectedYAxis(event.target.value);
-      };
+  };
 
   const handleChartTypeChange = (event) => {
     setSelectedChartType(event.target.value);
@@ -88,7 +88,7 @@ const Chart = ({ data }) => {
       try {
         // Check if both X and Y axes are selected
         if (selectedXAxis !== '' && selectedYAxis !== '' && data) {
-          const response = await fetch(backend+'/openai/provide-desc', {
+          const response = await fetch(backend + '/openai/provide-desc', {
             method: 'POST',
             headers: {
               "Content-Type": "application/json",
@@ -98,7 +98,8 @@ const Chart = ({ data }) => {
               xAxis: selectedXAxis,
               yAxis: selectedYAxis,
               chartType: selectedChartType,
-              data: data.slice(0, 2)
+              data: data.slice(0, 2),
+              locale: window.localStorage.getItem('language')
             }),
           });
 
@@ -123,14 +124,14 @@ const Chart = ({ data }) => {
 
 
   useEffect(() => {
-      const properties = Object.keys(data[0]);
-  
-      // Only proceed if there are more than 1 properties
-      if (properties.length > 1) {
-        // Example: Automatically select the first and second properties
-        setSelectedXAxis(properties[0]);
-        setSelectedYAxis(properties[1]);
-      }
+    const properties = Object.keys(data[0]);
+
+    // Only proceed if there are more than 1 properties
+    if (properties.length > 1) {
+      // Example: Automatically select the first and second properties
+      setSelectedXAxis(properties[0]);
+      setSelectedYAxis(properties[1]);
+    }
   }, []);
 
 
@@ -282,7 +283,7 @@ const Chart = ({ data }) => {
                 return;
               }
               const accessToken = keycloak.token;
-              const { latitude, longitude } = await getCityCoordinates(item.location || item.Location , accessToken);
+              const { latitude, longitude } = await getCityCoordinates(item.location || item.Location, accessToken);
 
               if (latitude && longitude) {
                 const cityMarker = L.marker([latitude, longitude]).addTo(map);

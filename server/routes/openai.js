@@ -66,26 +66,49 @@ router.post('/', async (req, res) => {
         rows.push({
             tableName: name
         });
-        let desc = await generatePrompt(rows,req.databaseName);
+        let desc = await generatePrompt(rows, req.databaseName);
         history.push(desc);
     }
 
-    let { query } = req.body;
-    let template = `[INST]${history.join("\n")}\n
-1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n
-2. Exclude results from tables starting with 'metadata_' in the query output.\n
-3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table. \n
-4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n
-5. Remember the exact table names from original tables, ensuring consistent casing and forms. \n
-6. Don't use any metadata tables in the sql query output.\n
-7. If the question is asked in German please return the result in German as well.\n
-8. Provide an SQL query code to '{{question}}'\n
-[/INST]`;
+    let { query, locale } = req.body;
+    console.log(locale)
+    let systemMessageContent = "";
+    if (locale === 'de') {
+        systemMessageContent = `[INST]<<SYS>>${history.join("\n")}\n
+                1. Identifizieren Sie zwei Arten von Tabellen: Originaltabellen und Tabellen, die mit 'metadata_' beginnen. Die Metadatentabellen enthalten Beschreibungen für jede Spalte der Originaltabellen.\n
+                2. Schließen Sie Ergebnisse von Tabellen aus, die mit 'metadata_' beginnen, in der Abfrageausgabe aus.\n
+                3. Interpretieren Sie die Bedeutung jeder Spalte basierend auf den bereitgestellten Metadatenbeschreibungen. Wenn beispielsweise eine Spalte wie 'xyz' in der Originaltabelle in den Metadatentabellen der Temperatur entspricht, wählen Sie 'xyz' für temperaturbezogene Abfragen aus und nicht die 'temperature'-Spalte aus der Metadatentabelle.\n
+                4. Enthalten Sie nur bekannte Spalten aus den Schema-Definitionstabellen in der SQL-Abfrage; verwenden Sie keine unbekannten Spalten.\n
+                5. Merken Sie sich die genauen Tabellennamen aus den Originaltabellen und stellen Sie sicher, dass die Groß- und Kleinschreibung sowie die Formen konsistent sind.\n
+                6. Verwenden Sie keine Metadatentabellen in der SQL-Abfrageausgabe.\n
+                7. Geben Sie Antworten in gültigem SQL \`\`\`sql \`\`\` zusammen mit einer kurzen Beschreibung an.\n
+                8. Bitte erzeugen Sie keine MySQL-Ansicht oder temporäre Tabelle, um die SQL-Abfrageausgabe zu generieren.<</SYS>>[/INST]`;
+    } else {
+        systemMessageContent = `[INST]<<SYS>>${history.join("\n")}\n
+                1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n
+                2. Exclude results from tables starting with 'metadata_' in the query output.\n
+                3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table.\n
+                4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n
+                5. Remember the exact table names from original tables, ensuring consistent casing and forms.\n
+                6. Don't use any metadata tables in the SQL query output.\n
+                7. Provide answers in valid SQL \`\`\`sql \`\`\` along with small description.\n
+                8. Please don't generate any MySQL view, or temp table to generate the SQL query output.<</SYS>>[/INST]`;
+    }
+    const systemMessage = {
+        role: "system",
+        content: systemMessageContent
+    };
 
-    let prompt = templateMe(template, query);
-    console.log(prompt);
+    //  let prompt = templateMe(template, query);
+    //  console.log(prompt);
 
-    let sqlQuery = extractCode(await getResult(prompt));
+    const userMessage = {
+        role: "user",
+        content: `${query}`
+    };
+    const messages = [systemMessage, userMessage];
+
+    let sqlQuery = extractCode(await getResult(messages));
     try {
         if (!sqlQuery) {
             return res.status(400).json({
@@ -112,21 +135,48 @@ router.post('/', async (req, res) => {
 
 
 router.post('/provide-desc', async (req, res) => {
+    let locale = req.body.locale;
+    console.log("I am in open ai=" + locale)
+    let systemMessageContent;
+    let userMessageContent;
 
-    let template = `You are a helpful AI assistant which will provide me with a caption for the chart based on the provided JSON data. 
+    if (locale === 'de') {
+        systemMessageContent = `[INST]<<SYS>>1. Mein x-Achse enthält ${req.body.xAxis}, 
+    2. y-Achse enthält ${req.body.yAxis}, 
+    3. und der Diagrammtyp ist ${req.body.chartType}. 
+    4. Meine ersten 2 Objekte der JSON-Daten sind ${JSON.stringify(req.body.data)}. 
+    5. Dies bedeutet nicht, dass die gesamten JSON-Daten nur diese Werte enthalten; 
+       sie enthalten viele weitere Daten basierend auf diesen Schlüsseln, daher geben Sie eine kurze generische Diagrammbeschreibung (Bildunterschrift) in einer kurzen Zeile an.<</SYS>>[/INST]`;
+
+        userMessageContent = `Du bist ein hilfreicher KI-Assistent, der mir eine Bildunterschrift für das Diagramm basierend auf den bereitgestellten JSON-Daten geben wird. 
+    Bitte generieren Sie eine Bildunterschrift, die die Erkenntnisse aus dem Diagramm beschreibt.`;
+    } else {
+        systemMessageContent = `[INST]<<SYS>>1. My xAxis contains ${req.body.xAxis}, 
+    2. yAxis contains ${req.body.yAxis}, 
+    3. and chart type is ${req.body.chartType}. 
+    4. My first 2 objects of JSON data are ${JSON.stringify(req.body.data)}. 
+    5. This does not mean the entire JSON data contains only these values; 
+       it contains a lot more data based on these keys, so provide a short generic chart description (caption) in one short line.<</SYS>>[/INST]`;
+
+        userMessageContent = `You are a helpful AI assistant which will provide me with a caption for the chart based on the provided JSON data. 
     Please generate a caption that describes the insights from the chart.`;
+    }
 
-    let question = `1. My xAxis contains ${req.body.xAxis}, 
-2. yAxis contains ${req.body.yAxis}, 
-3. and chart type is ${req.body.chartType}. 
-4. My first 2 objects of JSON data are ${JSON.stringify(req.body.data)}. 
-5. This does not mean the entire JSON data contains only these values; 
-   it contains a lot more data based on these keys, so provide a short generic chart description (caption) in one short line.`;
+    const systemMessage = {
+        role: "system",
+        content: systemMessageContent
+    };
 
+    const userMessage = {
+        role: "user",
+        content: userMessageContent
+    };
+
+    const messages = [systemMessage, userMessage];
     let chartDescription;
 
     try {
-        chartDescription = await getResult(template + "\n" + question); // Call getResult with template and question
+        chartDescription = await getResult(messages);
         return res.status(200).json({
             description: chartDescription
         });
@@ -134,10 +184,11 @@ router.post('/provide-desc', async (req, res) => {
         console.log(error);
         return res.status(400).json({
             queryResult: false,
-            error: error.message // Providing the error message for better debugging
+            error: error.message
         });
     }
 });
+
 
 
 

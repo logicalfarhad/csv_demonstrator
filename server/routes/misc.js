@@ -145,6 +145,7 @@ router.post('/truncate', async (req, res) => {
 });
 router.post('/getSchema', async (req, res) => {
     let schema = req.body.schema;
+    let locale = req.body.locale;
     try {
         await connection.query(`USE ${req.databaseName};`);
         const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${req.databaseName}' and table_name="${schema.toLowerCase()}"`;
@@ -153,18 +154,40 @@ router.post('/getSchema', async (req, res) => {
         const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
         const columnNames = rows.map((item) => item.COLUMN_NAME).join(",");
 
+        /*
         const prompt = `[INST]<<SYS>>Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.<</SYS>> \n
                         1. Please do not include sample value\n
                         2. Do not include data type\n
                         3. After column name always put colon : in the result.\n
                         4. The exact column name and every column should be present in the result.\n
                         5. Include the column names for which you could not generate any description.[/INST]`;
+        */
+        //  console.log(prompt)
+        // Define the system and user messages
+        const systemMessage = {
+            role: "system",
+            content: (
+                "[INST]<<SYS>>Return me one short sentence description for each of the SQL columns for table " +
+                `${schema} e.g. (${columnNames}) and having data with values ${formattedStrings}. ` +
+                "Try to make sense of data first, type of data and then rely on column name for description.<</SYS>>\n" +
+                "1. Please do not include sample value\n" +
+                "2. Do not include data type\n" +
+                "3. After column name always put colon : in the result.\n" +
+                "4. The exact column name and every column should be present in the result.\n" +
+                "5. Include the column names for which you could not generate any description.[/INST]"
+            )
+        };
 
-        console.log(prompt)
+        const userMessage = {
+            role: "user",
+            content: "Provide descriptions for the SQL columns."
+        };
 
-        let descriptions = await getResult(prompt)
+
+
+        const messages = [systemMessage, userMessage];
+        let descriptions = await getResult(messages)
         descriptions = descriptions.trim().split("\n");
-        console.log("###############")
         console.log(descriptions)
         const columnObject = extractColumnInfo(descriptions);
         console.log(columnObject)
