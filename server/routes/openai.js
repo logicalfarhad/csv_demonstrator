@@ -4,112 +4,139 @@ const { dbConnect } = require('../config/db');
 const { getResult } = require('../config/conversationChain');
 const connection = dbConnect();
 
-const templateMe = (template, replacement) => {
-    var regex = /{{(.*?)}}/g;
-    return template.replace(regex, (match, capture) => {
-        return replacement || "";
-    });
-}
-
 const extractCode = (inputString) => {
     const regex = /```([\s\S]+?)```/g;
     const matches = inputString.match(regex);
-
     if (matches && matches.length > 0) {
-        // Extracted code is between the first pair of triple backticks
         const extractedCode = matches[0].replace(/```/g, '').replace(/sql/g, '');
         return extractedCode.trim();
-    } else {
-        return null;
     }
+    return null;
 }
 
-
-const generateMetadataSchema = async (schema) => {
-    return schema.filter(column => column.Description.trim() !== 'undefined')
-        .map(column => `the '${column.Column_Name}' column means ${column.Description}`)
-        .join(', ');
+const generateCreateTableSchema = async (databaseName, tableName) => {
+    await connection.query(`USE ${databaseName};`);
+    const [rows] = await connection.query(`SHOW CREATE TABLE ${tableName};`);
+    return rows[0]['Create Table'];
 }
 
-const generateTableSchema = (schema) => {
-    return `${schema.map(item => {
-        if (item.Field) {
-            const keyField = item.Key ? `,Key:${item.Key}` : '';
-            return `Field:${item.Field},Type:${item.Type}${keyField}`;
-        }
-
-    }).join(';')}`;
-}
-const generatePrompt = async (schema, databaseName) => {
-    let table_name = schema[schema.length - 1].tableName;
-    if (table_name.startsWith('metadata_')) {
-        let [rows] = await connection.query(`USE ${databaseName};`);
-        [rows] = await connection.query(`select * from ${table_name};`);
-        let metadata_descirption = await generateMetadataSchema(rows)
-        return `<<SYS>>In the '${table_name}' table, ${metadata_descirption}<</SYS>>`;
-    }
-    return `<<SYS>>Schema definiton of '${table_name}' table: ${generateTableSchema(schema)}<</SYS>>`;
+const fetchSampleRows = async (databaseName, tableName) => {
+    await connection.query(`USE ${databaseName};`);
+    const [rows] = await connection.query(`SELECT * FROM ${tableName} LIMIT 2;`);
+    return rows;
 }
 
+const fetchColumnNames = async (databaseName, tableName) => {
+    await connection.query(`USE ${databaseName};`);
+    const [columns] = await connection.query(`SHOW COLUMNS FROM ${tableName};`);
+    return columns.map(column => column.Field);
+}
+
+const generateMetadataSchema = async (databaseName, tableName) => {
+    await connection.query(`USE ${databaseName};`);
+    const [rows] = await connection.query(`SELECT Column_Name, Description FROM ${tableName};`);
+    const formattedRows = rows.map(row => `the '${row.Column_Name}' column means ${row.Description}`).join(',\n');
+    return `${tableName}:\n${formattedRows}`;
+}
+
+const generatePrompt = async (databaseName) => {
+    await connection.query(`USE ${databaseName};`);
+    const [tables] = await connection.query("SHOW TABLES;");
+
+    const key = `Tables_in_${databaseName}`;
+    const tableNames = tables.map(table => table[key]);
+
+    // Filter out tables that start with 'metadata_'
+    const filteredTableNames = tableNames.filter(name => !name.startsWith('metadata_'));
+
+    const tableSchemas = await Promise.all(filteredTableNames.map(name => generateCreateTableSchema(databaseName, name)));
+
+    const schemaDefinitions = tableSchemas.map(schema => `CREATE TABLE:\n${schema}`).join('\n\n');
+
+    const tableDetailsPromises = filteredTableNames.map(async name => {
+        const columnNames = await fetchColumnNames(databaseName, name);
+        const sampleRows = await fetchSampleRows(databaseName, name);
+        const sampleRowsString = sampleRows.map(row => Object.values(row).join('\t')).join('\n');
+        return `2 rows from ${name} table (columns: ${columnNames.join(', ')}):\n${sampleRowsString}`;
+    });
+
+    const tableDetails = (await Promise.all(tableDetailsPromises)).join('\n\n');
+
+    // Fetch metadata descriptions for tables starting with 'metadata_'
+    const metadataDescriptionsPromises = tableNames
+        .filter(name => name.startsWith('metadata_'))
+        .map(name => generateMetadataSchema(databaseName, name));
+
+    const metadataDescriptions = (await Promise.all(metadataDescriptionsPromises)).join('\n\n');
+
+    const mysqlPrompt = `
+### MySQL Query Prompt and Instructions
+
+You are a skilled MySQL expert. Your task is to construct SQL queries that fetch specific data from the database in response to given questions. Follow these detailed instructions to ensure accurate and efficient query generation:
+
+1. **Query Limitations**:
+   - Never query for all columns from a table.
+   - Use double quotes (\`)"\`) around column names as delimited identifiers.
+
+2. **Column Selection**:
+   - Utilize only the column names visible in the tables provided below. Avoid querying for columns that do not exist in the schema.
+
+3. **Metadata Interpretation**:
+   - The metadata tables provide descriptions for each column in the original tables.
+   - Interpret the meaning of each column based on the provided metadata descriptions. 
+   - For example, if a column 'xyz' in the original table corresponds to 'temperature' in the metadata tables, prioritize 'xyz' for temperature-related queries over the 'temperature' column in the metadata table.
+
+4. **SQL Output Format**:
+   - Present answers in valid SQL format (\`\`\`sql \`\`\`) accompanied by a brief description of the query's objective.
+
+5. **Table Usage**:
+   - Focus exclusively on the tables specified in the schema definitions. Exclude metadata tables from direct query outputs.
+
+6. **DML Statements**:
+   - **DO NOT** make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.
+
+### Tables Available
+
+#### Original Tables
+
+${schemaDefinitions}
+
+/*
+${tableDetails}
+*/
+
+#### Metadata Tables (for reference)
+
+${metadataDescriptions}
+`;
+    return mysqlPrompt
+}
 
 router.post('/', async (req, res) => {
-    let history = [];
-    let [rows] = await connection.query(`USE ${req.databaseName};`);
-    [rows] = await connection.query("show tables;");
-
-    // let tableList = rows.map(table => table.Tables_in_demonstrator);
-    const key = `Tables_in_${req.databaseName}`
-    let tableList = rows.map(table => table[key]);
-
-    for (const name of tableList) {
-        [rows] = await connection.query(`DESCRIBE ${name};`);
-        rows.push({
-            tableName: name
-        });
-        let desc = await generatePrompt(rows, req.databaseName);
-        history.push(desc);
-    }
-
-    let { query, locale } = req.body;
-    console.log(locale)
-    let systemMessageContent = "";
-    if (locale === 'de') {
-        systemMessageContent = `[INST]<<SYS>>${history.join("\n")}\n
-                1. Identifizieren Sie zwei Arten von Tabellen: Originaltabellen und Tabellen, die mit 'metadata_' beginnen. Die Metadatentabellen enthalten Beschreibungen für jede Spalte der Originaltabellen.\n
-                2. Schließen Sie Ergebnisse von Tabellen aus, die mit 'metadata_' beginnen, in der Abfrageausgabe aus.\n
-                3. Interpretieren Sie die Bedeutung jeder Spalte basierend auf den bereitgestellten Metadatenbeschreibungen. Wenn beispielsweise eine Spalte wie 'xyz' in der Originaltabelle in den Metadatentabellen der Temperatur entspricht, wählen Sie 'xyz' für temperaturbezogene Abfragen aus und nicht die 'temperature'-Spalte aus der Metadatentabelle.\n
-                4. Enthalten Sie nur bekannte Spalten aus den Schema-Definitionstabellen in der SQL-Abfrage; verwenden Sie keine unbekannten Spalten.\n
-                5. Merken Sie sich die genauen Tabellennamen aus den Originaltabellen und stellen Sie sicher, dass die Groß- und Kleinschreibung sowie die Formen konsistent sind.\n
-                6. Verwenden Sie keine Metadatentabellen in der SQL-Abfrageausgabe.\n
-                7. Geben Sie Antworten in gültigem SQL \`\`\`sql \`\`\` zusammen mit einer kurzen Beschreibung an.\n
-                8. Bitte erzeugen Sie keine MySQL-Ansicht oder temporäre Tabelle, um die SQL-Abfrageausgabe zu generieren.<</SYS>>[/INST]`;
-    } else {
-        systemMessageContent = `[INST]<<SYS>>${history.join("\n")}\n
-                1. Identify two types of tables: original tables and tables starting with 'metadata_'. The metadata tables provide descriptions for each column of the original tables.\n
-                2. Exclude results from tables starting with 'metadata_' in the query output.\n
-                3. Interpret the meaning of each column based on the provided metadata descriptions. For instance, if a column like 'xyz' in the original table corresponds to temperature in the metadata tables, select 'xyz' for temperature-related queries, not the 'temperature' column from the metadata table.\n
-                4. Include only known columns from the schema definition tables in the SQL query; do not use any unknown columns.\n
-                5. Remember the exact table names from original tables, ensuring consistent casing and forms.\n
-                6. Don't use any metadata tables in the SQL query output.\n
-                7. Provide answers in valid SQL \`\`\`sql \`\`\` along with small description.\n
-                8. Please don't generate any MySQL view, or temp table to generate the SQL query output.<</SYS>>[/INST]`;
-    }
-    const systemMessage = {
-        role: "system",
-        content: systemMessageContent
-    };
-
-    //  let prompt = templateMe(template, query);
-    //  console.log(prompt);
-
-    const userMessage = {
-        role: "user",
-        content: `${query}`
-    };
-    const messages = [systemMessage, userMessage];
-
-    let sqlQuery = extractCode(await getResult(messages));
     try {
+        const { query, locale } = req.body;  // Extract query and locale from the request body
+        const databaseName = req.databaseName
+
+        if (!databaseName) {
+            return res.status(400).json({
+                queryResult: false,
+                query: 'Database name is required.'
+            });
+        }
+
+        // Generate the prompt based on the database schema
+        const prompt = await generatePrompt(databaseName);
+        console.log(prompt)
+        // Create system message content with the generated prompt
+        const systemMessageContent = `[INST]<<SYS>>${prompt}<</SYS>>[/INST]`;
+
+        // Create system and user messages for the AI
+        const systemMessage = { role: "system", content: systemMessageContent };
+        const userMessage = { role: "user", content: query };
+        const messages = [systemMessage, userMessage];
+
+        // Get the SQL query result from the AI
+        const sqlQuery = extractCode(await getResult(messages));
         if (!sqlQuery) {
             return res.status(400).json({
                 queryResult: false,
@@ -117,39 +144,39 @@ router.post('/', async (req, res) => {
             });
         }
 
-        [rows] = await connection.query(`USE ${req.databaseName};`);
-        [rows] = await connection.query(sqlQuery);
-        return res.status(200).json({
-            queryResult: rows,
-            query: sqlQuery
-        });
+        // Execute the SQL query on the database
+        await connection.query(`USE ${databaseName};`);
+        const [rows] = await connection.query(sqlQuery);
+        // Return the query result
+        if (rows.length > 0)
+            return res.status(200).json({ queryResult: rows, query: sqlQuery });
+        return res.status(200).json({ queryResult: false, query: "Please rephrase the question and try again" });
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            queryResult: false,
-            query: sqlQuery
-        });
+        console.error(error);
+        return res.status(500).json({ queryResult: false, query: error.sqlMessage });
     }
 });
 
-
-
 router.post('/provide-desc', async (req, res) => {
     let locale = req.body.locale;
-    console.log("I am in open ai=" + locale)
     let systemMessageContent;
     let userMessageContent;
 
     if (locale === 'de') {
-        systemMessageContent = `[INST]<<SYS>>1. Mein x-Achse enthält ${req.body.xAxis}, 
+        systemMessageContent = `[INST]<<SYS>> 
+    1. Meine x-Achse enthält ${req.body.xAxis}, 
     2. y-Achse enthält ${req.body.yAxis}, 
     3. und der Diagrammtyp ist ${req.body.chartType}. 
     4. Meine ersten 2 Objekte der JSON-Daten sind ${JSON.stringify(req.body.data)}. 
     5. Dies bedeutet nicht, dass die gesamten JSON-Daten nur diese Werte enthalten; 
        sie enthalten viele weitere Daten basierend auf diesen Schlüsseln, daher geben Sie eine kurze generische Diagrammbeschreibung (Bildunterschrift) in einer kurzen Zeile an.<</SYS>>[/INST]`;
 
-        userMessageContent = `Du bist ein hilfreicher KI-Assistent, der mir eine Bildunterschrift für das Diagramm basierend auf den bereitgestellten JSON-Daten geben wird. 
-    Bitte generieren Sie eine Bildunterschrift, die die Erkenntnisse aus dem Diagramm beschreibt.`;
+        userMessageContent = `Du bist ein hilfreicher KI-Assistent, der mir eine Bildunterschrift für das Diagramm basierend auf den bereitgestellten JSON-Daten geben wird. Bitte generieren Sie eine Bildunterschrift, die die Erkenntnisse aus dem Diagramm beschreibt.
+    
+    **Beispiel-Titel**
+    - "Umsatzentwicklung über Zeit: Liniendiagramm"
+    - "Bevölkerungsverteilung nach Altersgruppe: Balkendiagramm"
+    - "Kundenzufriedenheit nach Region: Tortendiagramm"`;
     } else {
         systemMessageContent = `[INST]<<SYS>>1. My xAxis contains ${req.body.xAxis}, 
     2. yAxis contains ${req.body.yAxis}, 
@@ -159,17 +186,22 @@ router.post('/provide-desc', async (req, res) => {
        it contains a lot more data based on these keys, so provide a short generic chart description (caption) in one short line.<</SYS>>[/INST]`;
 
         userMessageContent = `You are a helpful AI assistant which will provide me with a caption for the chart based on the provided JSON data. 
-    Please generate a caption that describes the insights from the chart.`;
+    Please generate a caption that describes the insights from the chart. 
+**Example Titles**
+
+"Sales Performance vs Time: Line Chart"
+"Population Distribution by Age Group: Bar Chart"
+"Customer Satisfaction by Region: Pie Chart"`;
     }
 
     const systemMessage = {
         role: "system",
-        content: systemMessageContent
+        content: systemMessageContent.trim()
     };
 
     const userMessage = {
         role: "user",
-        content: userMessageContent
+        content: userMessageContent.trim()
     };
 
     const messages = [systemMessage, userMessage];
@@ -178,7 +210,7 @@ router.post('/provide-desc', async (req, res) => {
     try {
         chartDescription = await getResult(messages);
         return res.status(200).json({
-            description: chartDescription
+            description: chartDescription.trim()
         });
     } catch (error) {
         console.log(error);
@@ -188,8 +220,5 @@ router.post('/provide-desc', async (req, res) => {
         });
     }
 });
-
-
-
 
 module.exports = router;
