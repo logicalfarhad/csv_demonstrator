@@ -51,10 +51,12 @@ const getResult = async (messages) => {
     try {
         const response = await fetch(LlAMA_API, options);
         const result = await response.json();
+        console.log(result)
         let description = result.payload.data.text;
         return description;
     } catch (error) {
         console.error('Error:', error);
+        return ""
     }
 }
 

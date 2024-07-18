@@ -43,6 +43,10 @@ const generatePrompt = async (databaseName) => {
     await connection.query(`USE ${databaseName};`);
     const [tables] = await connection.query("SHOW TABLES;");
 
+
+    if (tables.length == 0) {
+        return ""
+    }
     const key = `Tables_in_${databaseName}`;
     const tableNames = tables.map(table => table[key]);
 
@@ -62,12 +66,14 @@ const generatePrompt = async (databaseName) => {
 
     const tableDetails = (await Promise.all(tableDetailsPromises)).join('\n\n');
 
-    // Fetch metadata descriptions for tables starting with 'metadata_'
-    const metadataDescriptionsPromises = tableNames
-        .filter(name => name.startsWith('metadata_'))
-        .map(name => generateMetadataSchema(databaseName, name));
+    const metadataTables = tableNames.filter(name => name.startsWith('metadata_'));
 
-    const metadataDescriptions = (await Promise.all(metadataDescriptionsPromises)).join('\n\n');
+    let metadataDescriptions = '';
+
+    if (metadataTables.length > 0) {
+        const metadataDescriptionsPromises = metadataTables.map(name => generateMetadataSchema(databaseName, name));
+        metadataDescriptions = (await Promise.all(metadataDescriptionsPromises)).join('\n\n');
+    }
 
     const mysqlPrompt = `
 ### MySQL Query Prompt and Instructions
@@ -76,15 +82,17 @@ You are a skilled MySQL expert. Your task is to construct SQL queries that fetch
 
 1. **Query Limitations**:
    - Never query for all columns from a table.
-   - Use double quotes (\`)"\`) around column names as delimited identifiers.
+   - Use double quotes (\`"\`) around column names as delimited identifiers.
 
 2. **Column Selection**:
    - Utilize only the column names visible in the tables provided below. Avoid querying for columns that do not exist in the schema.
 
+${metadataDescriptions ? `
 3. **Metadata Interpretation**:
    - The metadata tables provide descriptions for each column in the original tables.
    - Interpret the meaning of each column based on the provided metadata descriptions. 
    - For example, if a column 'xyz' in the original table corresponds to 'temperature' in the metadata tables, prioritize 'xyz' for temperature-related queries over the 'temperature' column in the metadata table.
+` : ''}
 
 4. **SQL Output Format**:
    - Present answers in valid SQL format (\`\`\`sql \`\`\`) accompanied by a brief description of the query's objective.
@@ -105,10 +113,12 @@ ${schemaDefinitions}
 ${tableDetails}
 */
 
-#### Metadata Tables (for reference)
+${metadataDescriptions ? `#### Metadata Tables (for reference)
 
 ${metadataDescriptions}
+` : ''}
 `;
+
     return mysqlPrompt
 }
 
@@ -126,7 +136,15 @@ router.post('/', async (req, res) => {
 
         // Generate the prompt based on the database schema
         const prompt = await generatePrompt(databaseName);
-        console.log(prompt)
+        if (!prompt) {
+            return res.status(400).json({
+                queryResult: false,
+                query: 'Please upload CSV files first!'
+            });
+        }
+
+
+
         // Create system message content with the generated prompt
         const systemMessageContent = `[INST]<<SYS>>${prompt}<</SYS>>[/INST]`;
 
@@ -136,7 +154,15 @@ router.post('/', async (req, res) => {
         const messages = [systemMessage, userMessage];
 
         // Get the SQL query result from the AI
-        const sqlQuery = extractCode(await getResult(messages));
+        const result = await getResult(messages);
+        if (!result) {
+            return res.status(400).json({
+                queryResult: false,
+                query: 'Failed to get result from AI.'
+            });
+        }
+
+        const sqlQuery = extractCode(result);
         if (!sqlQuery) {
             return res.status(400).json({
                 queryResult: false,

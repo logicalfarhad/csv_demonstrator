@@ -233,7 +233,7 @@ const Prompting = () => {
         )}
 
         <form onSubmit={handleSubmit}>
-          {chatLog.length == 0 && (
+          {chatLog.length === 0 && (
             <div>
               <p>{t("menu3_prompt_sample_ques")}</p>
               <div>
