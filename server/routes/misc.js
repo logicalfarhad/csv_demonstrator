@@ -14,24 +14,30 @@ const openai = new OpenAI({
 
 
 const extractColumnInfo = (data) => {
+    // Initialize an empty object to store column information
     const columnInfo = {};
 
     // Loop through the array and extract information
     for (let i = 0; i < data.length; i++) {
-        if (data[i].trim() === '') continue;
+        // Skip empty lines or lines that do not start with a number followed by a dot
+        if (!data[i].match(/^\d+\./) || data[i].trim() === '') continue;
 
-        const matches = data[i].match(/([^:]+):\s*(.*)/);
-        if (matches) {
-            const columnName = matches[1]
-                .replace(/\\/g, '')
-                .trim()
-                .split(' ')
-                .join('_')
-                .toLowerCase(); // Removed backslashes
-            const description = matches[2].trim();
+        // Use regex to match and extract columnName and description
+        const matches = data[i].match(/^(\d+)\.\s*(.*?):\s*(.*)$/);
+        if (matches && matches.length === 4) {
+            const columnName = matches[2].trim().toLowerCase(); // Extract and normalize column name
+            const description = matches[3].trim(); // Extract description
+
+            // Store columnName and description in columnInfo object
             columnInfo[columnName] = description;
+        } else {
+            // Handle the case where no description is provided
+            // Extract column name from the beginning of the string
+            const columnName = data[i].match(/^\d+\.\s*(.*?):/)[1].trim().toLowerCase();
+            columnInfo[columnName] = ''; // Set an empty string as description
         }
     }
+
     return columnInfo;
 };
 
@@ -167,16 +173,21 @@ router.post('/getSchema', async (req, res) => {
         const systemMessage = {
             role: "system",
             content: (
-                "[INST]<<SYS>>Return me one short sentence description for each of the SQL columns for table " +
-                `${schema} e.g. (${columnNames}) and having data with values ${formattedStrings}. ` +
-                "Try to make sense of data first, type of data and then rely on column name for description.<</SYS>>\n" +
-                "1. Please do not include sample value\n" +
-                "2. Do not include data type\n" +
-                "3. After column name always put colon : in the result.\n" +
-                "4. The exact column name and every column should be present in the result.\n" +
-                "5. Include the column names for which you could not generate any description.[/INST]"
+                "[INST]<<SYS>>Return a short sentence description for each SQL column in table " +
+                `${schema} (columns: ${columnNames}), describing the nature or purpose of each column. ` +
+                "Consider the data stored and then use the column name to formulate the description.<</SYS>>\n" +
+                "1. Please do not include sample values.\n" +
+                "2. Do not specify the data type.\n" +
+                "3. Place a colon : after each column name in the result.\n" +
+                "4. Ensure every column name is included exactly as it appears.\n" +
+                "5. For example, if a column is named 'Id', the output should be like 1. Id: Description of the Id column.\n" +
+                "6. Include the column names for which you couldn't generate a description.\n[/INST]"
             )
         };
+        
+        
+
+     //   console.log(systemMessage)
 
         const userMessage = {
             role: "user",
@@ -189,6 +200,7 @@ router.post('/getSchema', async (req, res) => {
         let descriptions = await getResult(messages)
         descriptions = descriptions.trim().split("\n");
         console.log(descriptions)
+        console.log("###########")
         const columnObject = extractColumnInfo(descriptions);
         console.log(columnObject)
         rows.forEach(obj => {
