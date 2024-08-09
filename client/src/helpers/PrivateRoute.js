@@ -3,10 +3,9 @@ import { Navigate } from 'react-router-dom';
 
 const PrivateRoute = ({ children }) => {
   const { keycloak } = useKeycloak();
-console.log(keycloak)
+  console.log(keycloak)
   // Check if keycloak object exists before accessing its properties
   const isLoggedIn = keycloak && keycloak.authenticated;
-   console.log(isLoggedIn)
   return isLoggedIn ? children : <Navigate to="/" />;
 };
 

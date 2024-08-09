@@ -5,16 +5,17 @@
 }
 .About-section1 h4{
     color: var(--primary-font-color);
-    font-weight: bold;
+    font-weight: normal;
     font-size: 30px;
 }
 .About-section1 .subheading{
     color: var(--primary-font-color);
-    font-size: 20px;
+    font-size: 25px;
 }
 
 .About-section1 .text-muted{
     color: var(--primary-font-color) !important;
+    font-size: 17px;
 }
 
 /* .About-section1 .row

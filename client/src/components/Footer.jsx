@@ -1,32 +1,22 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import '../style/Footer.css';  // Import the CSS file for Footer styles
 
 const Footer = () => {
   const { t } = useTranslation();
 
-  // Helper function to get current year
-  const getCurrentYear = () => {
-    return new Date().getFullYear();
-  };
-
   return (
     <footer className="footer">
-      <div className="container text-center">
-        <div className="row">
-          <div className="col">
-            <p>
-              <Link to="/imprint">{t("imprint")}</Link> |{" "}
-              <Link to="/privacy-policy">{t("privacyPolicy")}</Link> |{" "}
-              <Link to="/term-of-use">{t("termofUse")}</Link>
-            </p>
-          </div>
-        </div>
-        <div className="row">
-          <div className="col">
-            <p>&copy;Fraunhofer IAIS {getCurrentYear()}</p>
-          </div>
-        </div>
+      <div className="footer-content">
+        <span className="footer-copy">
+          &copy; KI.NRW {new Date().getFullYear()}
+        </span>
+        <span className="footer-links">
+          <Link to="/imprint">{t("imprint")}</Link> |{" "}
+          <Link to="/privacy-policy">{t("privacyPolicy")}</Link> |{" "}
+          <Link to="/term-of-use">{t("termofUse")}</Link>
+        </span>
       </div>
     </footer>
   );

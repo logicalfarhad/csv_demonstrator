@@ -1,86 +1,79 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Form, Row, Col, OverlayTrigger, Tooltip } from 'react-bootstrap';
+import { Form, Row, Col } from 'react-bootstrap';
+import { Box, Grid, Button } from '@mui/material'; // Removed Typography import
 import { useTranslation } from "react-i18next";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useKeycloak } from "@react-keycloak/web";
-import Button from '@mui/material/Button';
-
-import FileUploadSection from "./FileUploadSection";
-import MetadataCheckModal from "./MetadataCheckModal";
-import MetadataDescriptionTable from "./MetadataDescriptionTable";
 import FileUploadComponent from "./FileUploadComponent";
-
+import FileUploadSection from "./FileUploadSection";
+import MetadataDescriptionTable from "./MetadataDescriptionTable";
+import MetadataCheckModal from "./MetadataCheckModal";
 
 const backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
 const CSVUpload = () => {
   const { keycloak } = useKeycloak();
-
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [selectedFileNames, setSelectedFileNames] = useState([]);
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
   const [metadataCheckStatus, setMetadataCheckStatus] = useState([]);
-  const [showDefaultUploadButton, setShowDefaultUploadButton] = useState(true);
+  const [showUploadAllButton, setShowUploadAllButton] = useState(false);
   const navigate = useNavigate();
-  const uploadTooltip = <Tooltip id="upload-tooltip">Upload files</Tooltip>;
 
+  // Function to handle the Upload All button click
   const handleUploadAll = async (event) => {
+    event.preventDefault();
+    if (!keycloak?.authenticated) return;
+    const formData = new FormData();
+    selectedFiles.forEach(file => formData.append('csv', file));
+
     try {
-      event.preventDefault();
-      if (!keycloak || !keycloak.authenticated) return;
-      const accessToken = keycloak.token;
-      const formData = new FormData();
-      selectedFiles.forEach(file => {
-        formData.append('csv', file);
-      });
-      const requestOption = {
+      const data = await fetchDataWithToast(`${backend}/upload`, {
         method: 'POST',
         body: formData,
-        headers: {
-          'Authorization': `Bearer ${accessToken}`
-        }
-      };
-      const data = await fetchDataWithToast(backend + '/upload', requestOption);
+        headers: { 'Authorization': `Bearer ${keycloak.token}` }
+      });
       console.log(data);
       //  navigate("/prompting");
     } catch (error) {
-      console.log(error);
-      throw new Error(`HTTP error! status: ${error}`);
+      console.error(error);
+      toast.error(t("upload_error"));
     }
   };
 
+  // Function to handle the Default Upload button click
   const handleDefaultUpload = async () => {
-    if (!keycloak || !keycloak.authenticated) return;
-    const accessToken = keycloak.token;
-    const requestOptions = {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      }
-    };
-    fetchDataWithToast(backend + '/upload/defaultupload', requestOptions)
-      .then(data => {
-        console.log(data)
-        navigate("/prompting");
-      })
-      .catch(error => {
-        console.log(error);
+    if (!keycloak?.authenticated) return;
+    try {
+      const data = await fetchDataWithToast(`${backend}/upload/defaultupload`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${keycloak.token}`
+        }
       });
+      console.log(data);
+      navigate("/prompting");
+    } catch (error) {
+      console.error(error);
+      toast.error(t("default_upload_error"));
+    }
   };
 
+  // Handle file drop
   const handleFileDrop = (acceptedFiles) => {
-    const newFiles = acceptedFiles.filter((file) => !selectedFileNames.includes(file.name));
-    setSelectedFiles([...selectedFiles, ...newFiles]);
-    setShowDefaultUploadButton(newFiles.length > 0 ? false : true);
+    const newFiles = acceptedFiles.filter(file => !selectedFiles.some(selectedFile => selectedFile.name === file.name));
+    setSelectedFiles(prevFiles => [...prevFiles, ...newFiles]);
+    setShowUploadAllButton(true); // Show the Upload All button when files are selected
   };
 
+  // Fetch data with toast notifications
   const fetchDataWithToast = (url, requestOptions, file) => {
     const promise = new Promise((resolve, reject) => {
       fetch(url, requestOptions)
@@ -104,10 +97,13 @@ const CSVUpload = () => {
     return promise;
   };
 
-  const handleConfigureMetadata = (file) => {
+
+
+  // Configure metadata for the selected file
+  const handleConfigureMetadata = (input) => {
     if (!keycloak || !keycloak.authenticated) return;
     const accessToken = keycloak.token;
-    let schema = file.name.split('.')[0].toLowerCase();
+    const schema = typeof input === 'string' ? input : input.name.split('.')[0].toLowerCase();
     setSelectedFileNames(schema);
     const requestOptions = {
       method: 'POST',
@@ -120,6 +116,7 @@ const CSVUpload = () => {
     };
     fetchDataWithToast(backend + '/misc/getSchema', requestOptions)
       .then(data => {
+        setIsMetadataModalOpen(false)
         const uniqueColumnNames = new Set();
         const newData = [];
         for (const item of data) {
@@ -137,46 +134,45 @@ const CSVUpload = () => {
       });
   };
 
-  const handleCloseMetadataModal = () => {
-    setTableData([]);
-  };
 
-  const handleCloseMetadataConfigModal = () => {
-    setIsMetadataModalOpen(false);
-  };
+  const handleCloseMetadataModal = () => setTableData([]);
+  const handleCloseMetadataConfigModal = () => setIsMetadataModalOpen(false);
 
+  // Check metadata
   const handleCheckMetaData = async () => {
-    if (!keycloak || !keycloak.authenticated) return;
-    const accessToken = keycloak.token;
+    if (!keycloak?.authenticated) return;
     try {
-      const response = await fetch(backend + '/upload/checkmetadata', {
+      const response = await fetch(`${backend}/upload/checkmetadata`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          'Authorization': `Bearer ${keycloak.token}`
         }
       });
-      let status = await response.json();
-      console.log(status);
+      const status = await response.json();
       setMetadataCheckStatus(status);
       setIsMetadataModalOpen(true);
-      console.log(metadataCheckStatus);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error(t("metadata_check_error"));
     }
   };
 
-  const handleColumnDescriptionChange = (newData) => {
-    setTableData(newData);
-  };
+  const handleColumnDescriptionChange = (newData) => setTableData(newData);
 
   const handleRemoveFile = (index) => {
-    const newSelectedFiles = [...selectedFiles];
-    newSelectedFiles.splice(index, 1);
-    setSelectedFiles(newSelectedFiles);
+    setSelectedFiles(prevFiles => {
+      const newFiles = [...prevFiles];
+      newFiles.splice(index, 1);
+      if (newFiles.length === 0) {
+        setShowUploadAllButton(false); // Hide Upload All button if no files are left
+      }
+      return newFiles;
+    });
   };
 
+  // Save metadata
   const handleMetaDataSave = async () => {
     if (!keycloak || !keycloak.authenticated) return;
     const accessToken = keycloak.token;
@@ -211,24 +207,51 @@ const CSVUpload = () => {
     }
   };
 
+
   return (
     <div className="data-upload-section">
-      <Row>
-        <Col md={6} xs={12}>
-          {/*<h4>Step 1: Data Uploading</h4>*/}
-          <p className="text-left">
-            {t("menu2_inst")}
-          </p>
-        </Col>
-      </Row>
-
+      <Box p={3} sx={{ width: '50%' }}>
+        <h2 style={{ marginBottom: '16px', fontSize: '25px' }}>
+          {t("upload_instructions_title")}
+        </h2>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step1")}
+        </p>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step2")}
+        </p>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step3")}
+        </p>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step4")}
+        </p>
+      </Box>
+      <Grid container spacing={1} alignItems="center" style={{ marginTop: '16px' }}>
+        <Grid item xs={4}>
+          <FileUploadComponent onFileDrop={handleFileDrop} t={t} />
+        </Grid>
+        <Grid item xs={1} container justifyContent="center" alignItems="center">
+          {/* Text "OR" */}
+          <span style={{ margin: '0 10px', textAlign: 'center', fontSize: '30px' }}>
+            OR
+          </span>
+        </Grid>
+        <Grid item xs={4} container justifyContent="flex-start">
+          {/* Test Data Button */}
+          <Button
+            variant="text"
+            className="mt-2"
+            onClick={handleDefaultUpload}
+            style={{ marginLeft: '0' }}
+          >
+            {t("menu2_btn_use_testdata")}
+          </Button>
+        </Grid>
+      </Grid>
       <Row>
         <Col md={6} xs={12}>
           <Form>
-            <Col md={4} xs={12}>
-              <FileUploadComponent onFileDrop={handleFileDrop} t={t} />
-            </Col>
-
             <FileUploadSection
               selectedFiles={selectedFiles}
               handleConfigureMetadata={handleConfigureMetadata}
@@ -239,28 +262,23 @@ const CSVUpload = () => {
         </Col>
       </Row>
       <Row>
-        <Col md={6} xs={12}>
-          <br />
-          <br />
+        <Col md={6} xs={12} style={{ display: 'flex', alignItems: 'center' }}>
           <Button variant="text" className="mt-2" onClick={handleCheckMetaData}>
             {t("menu2_btn_check_metadata")}
           </Button>
-          {showDefaultUploadButton && (
-            <Button variant="text" className="mt-2" onClick={handleDefaultUpload} style={{ marginLeft: '10px' }}>
-              {t("menu2_btn_use_testdata")}
+          {/* Upload All Button aligned with Check Metadata button */}
+          {showUploadAllButton && (
+            <Button
+              variant="text"
+              className="mt-2"
+              onClick={handleUploadAll}
+              disabled={!showUploadAllButton}
+            >
+              {t("menu2_upload_all_btn")}
             </Button>
           )}
-
-          {!showDefaultUploadButton && (
-            <OverlayTrigger placement="bottom" overlay={uploadTooltip}>
-              <Button variant="text" className="mt-2" onClick={handleUploadAll} style={{ marginLeft: '10px' }}>
-                {t("menu2_upload_all_btn")}
-              </Button>
-            </OverlayTrigger>
-
-          )}
           <br />
-          <hr style={{ borderTop: "5px solid grey" }} />
+          <hr style={{ borderTop: "5px solid grey", marginTop: '10px' }} />
           <br />
         </Col>
       </Row>
@@ -275,11 +293,11 @@ const CSVUpload = () => {
         />
       )}
 
-
       <MetadataCheckModal
         isMetadataModalOpen={isMetadataModalOpen}
         handleCloseMetadataConfigModal={handleCloseMetadataConfigModal}
         metadataCheckStatus={metadataCheckStatus}
+        handleGearIconClick={handleConfigureMetadata}
         t={t}
       />
       <ToastContainer autoClose={500} />

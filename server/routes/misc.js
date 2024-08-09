@@ -31,10 +31,13 @@ const extractColumnInfo = (data) => {
             // Store columnName and description in columnInfo object
             columnInfo[columnName] = description;
         } else {
-            // Handle the case where no description is provided
+            // Handle the case where the description might not be provided
             // Extract column name from the beginning of the string
-            const columnName = data[i].match(/^\d+\.\s*(.*?):/)[1].trim().toLowerCase();
-            columnInfo[columnName] = ''; // Set an empty string as description
+            const columnNameMatches = data[i].match(/^\d+\.\s*(.*?):/);
+            if (columnNameMatches && columnNameMatches.length === 2) {
+                const columnName = columnNameMatches[1].trim().toLowerCase();
+                columnInfo[columnName] = ''; // Set an empty string as description
+            }
         }
     }
 
@@ -127,7 +130,7 @@ router.post("/getCoordinates", async (req, res) => {
 });
 router.post('/truncate', async (req, res) => {
     try {
-
+        
         await connection.query(`USE ${req.databaseName};`);
         await connection.query('SET FOREIGN_KEY_CHECKS=0');
         let sql = `SELECT CONCAT('DROP TABLE ', TABLE_NAME, ';')
@@ -149,6 +152,25 @@ router.post('/truncate', async (req, res) => {
     }
 
 });
+
+
+router.post('/tableCount', async (req, res) => {
+    try {
+        await connection.query(`USE ${req.databaseName};`);
+        const [rows] = await connection.query(`
+            SELECT COUNT(*) AS tableCount
+            FROM INFORMATION_SCHEMA.tables
+            WHERE TABLE_SCHEMA = '${req.databaseName}';
+        `);
+        return res.status(200).json({ success: true, tableCount: rows[0].tableCount });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false });
+    }
+});
+
+
+
 router.post('/getSchema', async (req, res) => {
     let schema = req.body.schema;
     let locale = req.body.locale;

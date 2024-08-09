@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import "./signupform.css";
+import "../../style/signupform.css";
 import { useNavigate } from "react-router-dom";
 // import SvgComponent from "../SvgComponent";
-import logo from "./../../images/iais.png"
+import logo from "./../../images/ki-nrw.png"
 import {Image } from 'react-bootstrap';
 
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';

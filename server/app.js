@@ -7,13 +7,9 @@ const jwt = require('jsonwebtoken');
 const uploadRouter = require("./routes/upload")
 const openaiRouter = require('./routes/openai')
 const miscRouter = require('./routes/misc')
-const db = require("./config/db");
+//const db = require("./config/db");
 const fetch = require('node-fetch');
 const crypto = require('crypto');
-
-const { dbConnect } = require('./config/db');
-const historyModule = require('./config/memory');
-const { LlAMA_API } = process.env;
 
 const app = express();
 
@@ -73,13 +69,13 @@ const authenticateToken = async (req, res, next) => {
           .json({ message: "Unauthorized: Token has expired" });
       }
 
-      console.log(decoded)
+      //console.log(decoded)
       req.user = decoded.preferred_username;
       console.log(req.user);
       const uniqueId = decoded.sub;
       const hash = crypto.createHash('md5').update(uniqueId).digest('hex');
       req.databaseName= `db_${hash}`;
-      console.log(req.databaseName)
+     // console.log(req.databaseName)
       next();
     });
   } catch (error) {

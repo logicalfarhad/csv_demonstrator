@@ -31,6 +31,8 @@ const MetadataDescriptionTable = ({
 
   return (
     <div>
+      <br />
+      <br />
       <Grid container spacing={3}>
         <Grid item md={6} xs={12}>
           <h4>{t("menu2_metadadesc_title")}</h4>
@@ -38,7 +40,7 @@ const MetadataDescriptionTable = ({
             <Table aria-label="metadata description table">
               <TableHead>
                 <TableRow>
-                  <TableCell>{t("menu2_metadata_table_column")}</TableCell>
+                  <TableCell sx={{ minWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'wrap' }}>{t("menu2_metadata_table_column")}</TableCell>
                   <TableCell>{t("menu2_metadata_table_desc")}</TableCell>
                 </TableRow>
               </TableHead>

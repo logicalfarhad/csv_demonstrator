@@ -1,9 +1,9 @@
 import React from 'react';
 import { Row, Col, Image } from 'react-bootstrap';
-import './AboutSection.css'; // Import your CSS file
-import image1 from './../../images/AdobeStock_672055378.jpeg'
-import image2 from './../../images/AdobeStock_652599102.jpeg'
-import image3 from './../../images/AdobeStock_127541998.jpeg'
+import '../../style/AboutSection.css'; // Import your CSS file
+import image1 from './../../images/LLM_Visual_01.jpg'
+import image2 from './../../images/LLM_Visual_02.jpg'
+import image3 from './../../images/LLM_Visual_03.jpg'
 import { useTranslation } from "react-i18next";
 const AboutSection = () => {
 

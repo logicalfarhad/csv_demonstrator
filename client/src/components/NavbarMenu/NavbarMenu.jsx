@@ -6,14 +6,14 @@ import Header from "../../pages/Header";
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
-import './NavbarMenu.css'
+import '../../style/NavbarMenu.css'
 import { useKeycloak } from "@react-keycloak/web";
 
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
 const NavbarMenu = () => {
   const { t, i18n } = useTranslation();
-  const { keycloak, initialized } = useKeycloak();
+  const { keycloak } = useKeycloak();
   // const { dispatch } = useContext(AuthContext);
   const location = useLocation();
   const isActive = (path) => {

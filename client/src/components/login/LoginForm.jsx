@@ -1,10 +1,10 @@
 import React, { useContext, useState } from "react";
-import "../signup/signupform.css";
+import "../../style/signupform.css";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import {Image } from 'react-bootstrap';
+import { Image } from 'react-bootstrap';
 // import SvgComponent from "../SvgComponent";
-import logo from "./../../images/iais.png"
+import logo from "./../../images/ki-nrw.png"
 let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const LoginForm = () => {
   const [loginEmail, setLoginEmail] = useState("");
@@ -29,11 +29,11 @@ const LoginForm = () => {
       const data = await response.json();
 
       if (response.status === 200) {
-                dispatch({ type: "LOGIN", payload: data.token });
-              // Introduce a delay before redirection (e.g., 500 milliseconds)
-      setTimeout(() => {
-        navigate("/");
-      }, 500);
+        dispatch({ type: "LOGIN", payload: data.token });
+        // Introduce a delay before redirection (e.g., 500 milliseconds)
+        setTimeout(() => {
+          navigate("/");
+        }, 500);
       } else {
         setErrorMessage(data.message);
       }
@@ -45,7 +45,7 @@ const LoginForm = () => {
 
   return (
     <div className="signupFormContainer">
-      <Image style={{ width: "20%" }}
+      <Image style={{ width: "10%" }}
         src={logo}
       />
       {/* <SvgComponent w={50} h={50} stroke="#202123" /> */}

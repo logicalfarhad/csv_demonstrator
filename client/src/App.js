@@ -1,8 +1,8 @@
-import "./normal.css";
-import "./App.css";
+import "./style/normal.css";
+import "./style/App.css";
 import Login from "./pages/Login";
-import React, { Suspense, lazy } from 'react'
-import { HashRouter as Router, Route, Routes } from "react-router-dom";
+import React from 'react'
+import {Route, Routes } from "react-router-dom";
 import { ReactKeycloakProvider } from "@react-keycloak/web";
 import keycloak from "./Keycloak"
 

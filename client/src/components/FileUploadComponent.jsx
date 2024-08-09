@@ -29,6 +29,7 @@ const FileUploadComponent = ({ onFileDrop, t }) => {
 const dropzoneStyles = {
   border: '2px dashed #cccccc',
   borderRadius: '4px',
+  marginLeft: '20px',
   padding: '20px',
   textAlign: 'center',
   cursor: 'pointer',

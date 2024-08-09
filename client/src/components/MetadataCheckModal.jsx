@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent } from '@mui/material';
+import { Table, Tooltip, IconButton, TableBody, TableCell, TableContainer, TableHead, TableRow, Card, CardContent } from '@mui/material';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
@@ -7,8 +7,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import { Settings as GearIcon } from '@mui/icons-material';
 
-const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModal, metadataCheckStatus, t }) => {
+const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModal, metadataCheckStatus, handleGearIconClick, t }) => {
+
   return (
     <div>
       <Dialog
@@ -26,6 +28,7 @@ const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModa
                   <TableRow>
                     <TableCell>{t("metadata_table_name")}</TableCell>
                     <TableCell>{t("metadata_table_status")}</TableCell>
+                    <TableCell>{t("menu2_configure_metadata")}</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -38,6 +41,13 @@ const MetadataCheckModal = ({ isMetadataModalOpen, handleCloseMetadataConfigModa
                         ) : (
                           <span style={{ color: 'red' }}><CancelIcon /> {t("metadata_configuration_status_not_configured")}</span>
                         )}
+                      </TableCell>
+                      <TableCell style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <Tooltip title={t("menu2_metadata_tooltip")} placement="bottom">
+                          <IconButton color="info" size="small" onClick={() => handleGearIconClick(item.table_name)}>
+                            <GearIcon />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}
