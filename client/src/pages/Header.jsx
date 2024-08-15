@@ -5,21 +5,27 @@ import { useTranslation } from "react-i18next";
 
 const Header = () => {
     const { t, i18n } = useTranslation();
-    const [switchState, setSwitchState] = useState(false);
+    const [switchState, setSwitchState] = useState(false); // default unchecked (DE)
 
     useEffect(() => {
         const savedLanguage = localStorage.getItem('language');
-        if (savedLanguage) {
-            const isGerman = savedLanguage === 'de';
-            setSwitchState(isGerman);
-            i18n.changeLanguage(savedLanguage).catch(err => {
-                console.error("Failed to change language:", err);
-            });
+        // If there's a saved language, use it; otherwise default to 'de'
+        const defaultLanguage = savedLanguage || 'de';
+        const isGerman = defaultLanguage === 'de';
+        
+        setSwitchState(!isGerman); // Switch is checked for EN and unchecked for DE
+        i18n.changeLanguage(defaultLanguage).catch(err => {
+            console.error("Failed to change language:", err);
+        });
+
+        if (!savedLanguage) {
+            // If no language was stored, set it to 'de' in localStorage
+            localStorage.setItem('language', 'de');
         }
-    }, []); // Empty dependency array ensures this runs only on mount
+    }, [i18n]);
 
     const handleSwitchChange = (event) => {
-        const newLocale = event.target.checked ? 'de' : 'en';
+        const newLocale = event.target.checked ? 'en' : 'de';
         setSwitchState(event.target.checked);
         i18n.changeLanguage(newLocale).catch(err => {
             console.error("Failed to change language:", err);
