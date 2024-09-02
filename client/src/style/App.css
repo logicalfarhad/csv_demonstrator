@@ -1,5 +1,7 @@
 :root {
 
+  --text-font: 'FrutigerRomanNormal', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
   --primary-bg-color: #fff;
   --secondary-bg-color: #575969;
 
@@ -9,6 +11,11 @@
   --primary-button-bg-color-hover: #057cab;
   --secondary-button-bg-color: #6c757d;
   --secondary-button-bg-color-hover: #5c636a;
+}
+
+@font-face {
+  font-family: 'FrutigerRomanNormal';
+  src: url('./../fonts/Frutiger Roman.ttf') format('truetype');
 }
 
 
