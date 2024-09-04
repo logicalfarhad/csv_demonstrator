@@ -13,3 +13,4 @@ deploy-job:      # This job runs in the deploy stage.
     - docker compose down -v
     - docker compose up -d --build --force-recreate
     - echo "Application successfully deployed."
+    - rm -rf builds/
