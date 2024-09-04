@@ -8,11 +8,8 @@ deploy-job:      # This job runs in the deploy stage.
     - echo "Deploying application..."
     - echo "Application successfully deployed."
     - echo "Assuming existing git repo on correct branch..."
-    - cd cd /data/projects/csv-demonstrator/
+    - cd /data/projects/csv-demonstrator/
     - git pull
     - docker compose down -v
     - docker compose up -d --build --force-recreate
     - echo "Application successfully deployed."
-  only:
-    - mistral_llm
-
