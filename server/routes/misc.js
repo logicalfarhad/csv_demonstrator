@@ -45,6 +45,7 @@ const extractColumnInfo = (data) => {
 };
 
 router.post('/saveMetadata', async (req, res) => {
+    let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
     try {
         const metadata = req.body;
         const table_name = `metadata_${metadata.tableName.toLowerCase()}`;
@@ -174,6 +175,7 @@ router.post('/tableCount', async (req, res) => {
 router.post('/getSchema', async (req, res) => {
     let schema = req.body.schema;
     let locale = req.body.locale;
+    let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
     try {
         await connection.query(`USE ${req.databaseName};`);
         const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${req.databaseName}' and table_name="${schema.toLowerCase()}"`;
@@ -219,7 +221,7 @@ router.post('/getSchema', async (req, res) => {
 
 
         const messages = [systemMessage, userMessage];
-        let descriptions = await getResult(messages)
+        let descriptions = await getResult(messages,model)
         descriptions = descriptions.trim().split("\n");
         console.log(descriptions)
         console.log("###########")

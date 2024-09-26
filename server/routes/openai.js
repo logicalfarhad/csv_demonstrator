@@ -123,6 +123,7 @@ ${metadataDescriptions}
 }
 
 router.post('/', async (req, res) => {
+    let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
     try {
         const { query, locale } = req.body;  // Extract query and locale from the request body
         const databaseName = req.databaseName
@@ -154,7 +155,7 @@ router.post('/', async (req, res) => {
         const messages = [systemMessage, userMessage];
 
         // Get the SQL query result from the AI
-        const result = await getResult(messages);
+        const result = await getResult(messages,model);
         if (!result) {
             return res.status(400).json({
                 queryResult: false,
@@ -187,6 +188,8 @@ router.post('/provide-desc', async (req, res) => {
     let locale = req.body.locale;
     let systemMessageContent;
     let userMessageContent;
+    let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
+
 
     if (locale === 'de') {
         systemMessageContent = `[INST]<<SYS>> 
@@ -234,7 +237,7 @@ router.post('/provide-desc', async (req, res) => {
     let chartDescription;
 
     try {
-        chartDescription = await getResult(messages);
+        chartDescription = await getResult(messages,model);
         return res.status(200).json({
             description: chartDescription.trim()
         });

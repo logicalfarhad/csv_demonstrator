@@ -70,12 +70,14 @@ const Prompting = () => {
           return;
         }
         const accessToken = keycloak.token;
+        const model = localStorage.getItem('selectedModel') || '';
         try {
           const response = await fetch(`${process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api'}/openai`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${accessToken}`,
+              'X-Model': model
             },
             body: JSON.stringify({ query: inputPrompt, locale: i18n.language }),
           });

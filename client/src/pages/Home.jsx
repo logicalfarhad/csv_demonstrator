@@ -31,12 +31,14 @@ const Home = () => {
 
       async function callAPI() {
         let bearer = 'Bearer ' + window.localStorage.getItem("token");
+        const model = localStorage.getItem('selectedModel') || '';
         try {
           const response = await fetch(backend + "/openai", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              'Authorization': bearer
+              'Authorization': bearer,
+              'X-Model': model
             },
             body: JSON.stringify({ query: inputPrompt }),
           });

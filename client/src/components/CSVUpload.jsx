@@ -103,6 +103,8 @@ const CSVUpload = () => {
   const handleConfigureMetadata = (input) => {
     if (!keycloak || !keycloak.authenticated) return;
     const accessToken = keycloak.token;
+    // Get the model from localStorage
+    const model = localStorage.getItem('selectedModel') || '';
     const schema = typeof input === 'string' ? input : input.name.split('.')[0].toLowerCase();
     setSelectedFileNames(schema);
     const requestOptions = {
@@ -111,7 +113,8 @@ const CSVUpload = () => {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
+        'Authorization': `Bearer ${accessToken}`,
+        'X-Model': model
       }
     };
     fetchDataWithToast(backend + '/misc/getSchema', requestOptions)
@@ -176,6 +179,7 @@ const CSVUpload = () => {
   const handleMetaDataSave = async () => {
     if (!keycloak || !keycloak.authenticated) return;
     const accessToken = keycloak.token;
+    const model = localStorage.getItem('selectedModel') || '';
     try {
       const response = await fetch(backend + '/misc/saveMetadata', {
         method: 'POST',
@@ -186,7 +190,8 @@ const CSVUpload = () => {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`
+          'Authorization': `Bearer ${accessToken}`,
+          'X-Model': model,
         }
       });
       const data = await response.json();

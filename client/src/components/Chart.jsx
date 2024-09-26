@@ -85,6 +85,7 @@ const Chart = ({ data }) => {
         return;
       }
       const accessToken = keycloak.token;
+      const model = localStorage.getItem('selectedModel') || '';
       try {
         // Check if both X and Y axes are selected
         if (selectedXAxis !== '' && selectedYAxis !== '' && data) {
@@ -92,7 +93,8 @@ const Chart = ({ data }) => {
             method: 'POST',
             headers: {
               "Content-Type": "application/json",
-              'Authorization': `Bearer ${accessToken}`
+              'Authorization': `Bearer ${accessToken}`,
+              'X-Model': model
             },
             body: JSON.stringify({
               xAxis: selectedXAxis,
