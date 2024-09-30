@@ -1,20 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import "./index.css";
+import "./style/index.css";
 import App from "./App";
+import { HashRouter } from "react-router-dom";
 import reportWebVitals from "./reportWebVitals";
-import { BrowserRouter } from "react-router-dom";
-import { AuthContextProvider } from "./context/AuthContext";
-
+import i18n from './components/i18n';
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <React.StrictMode>
-    <AuthContextProvider>
-      <BrowserRouter basename="/demonstrator">
-        <App />
-      </BrowserRouter>
-    </AuthContextProvider>
-  </React.StrictMode>
+  // <React.StrictMode>
+  <HashRouter basename='/'>
+    <App />
+  </HashRouter>
+  // </React.StrictMode>
 );
 
 // If you want to start measuring performance in your app, pass a function

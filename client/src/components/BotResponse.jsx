@@ -1,16 +1,30 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+import React, { useRef, useState, useEffect } from 'react';
+import html2canvas from 'html2canvas';
+
 
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
+import { Row, Col } from 'react-bootstrap';
 
 import Chart from "./Chart"
+import PdfDocument from "./PdfDocument" 
+import ResultTable from './ResultTable';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import FullscreenExitIcon from '@mui/icons-material/FullscreenExit';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 
 
-const BotResponse = ({ response, queryResponse, chatLogRef }) => {
+
+const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
   const [botResoponse, setBotResponse] = useState("");
   const [isPrinting, setIsPrinting] = useState(true);
   const [isButtonVisible, setIsButtonVisible] = useState(false);
+
+  const [chartImages, setChartImages] = useState([]);
+  const chartsContainerRef = useRef(null);
+
 
   const [show, setShow] = useState(false);
 
@@ -21,6 +35,22 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
   const [showVisualization, setShowVisualization] = useState(false);
   const handleCloseVisualization = () => setShowVisualization(false);
   const handleShowVisualization = () => setShowVisualization(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  const toggleFullScreen = () => {
+    setIsFullScreen(!isFullScreen);
+  };
+  const divStyle = {
+    width: isFullScreen && '100%', // adjust the width as needed
+    height: isFullScreen && '100%', // adjust the height as needed
+    position: isFullScreen && 'fixed',
+    zIndex: isFullScreen && '9999',
+    paddingTop: '7px',
+    left: isFullScreen&& '0',
+    top: isFullScreen && '0',
+    backgroundColor: "rgb(255, 255, 255)",
+    transition: 'all 0.5s ease', // optional: add a transition for a smooth effect
+  };
 
   useEffect(() => {
     let index = 1;
@@ -47,30 +77,80 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
           block: "end",
         });
       }
-    }, 30);
+    }, 10);
     return () => clearInterval(msg); // clear interval on component unmount
   }, [chatLogRef, response, isPrinting]);
+
+
+  const generateImages = async () => {
+    setChartImages([]);
+    if (chartsContainerRef.current) {
+      const chartDivs = chartsContainerRef.current.querySelectorAll('.charts-container > div');
+      
+      const promises = Array.from(chartDivs).map(async (div, index) => {
+        const titleElement = div.querySelector('h3');
+        const descriptionElement = div.querySelector('p');
+        const canvasElement = div.querySelector('canvas') || div.querySelector('div');
+
+
+        const chartData = {
+          id: index,
+          dataUrl: null,
+          title: titleElement ? titleElement.textContent : '',
+          description: descriptionElement ? descriptionElement.textContent : '',
+        };
+
+        /*Commenting this out for now because route is not there and it still using openAI
+        Implement route in llama2 and then use it*/
+        
+        // let field = descriptionElement ? descriptionElement.textContent : '';
+        // if(field !== ''){
+        //   let prompt = `Based on this sql query response and data ${JSON.stringify(queryResponse)}, Generate one line description for field ${field}`
+        //   // console.log(prompt);
+        //   try {
+        //     const response = await fetch(`http://localhost:4000/openai?prompt=${prompt}`, {
+        //       method: "GET",
+        //       headers: { "Content-Type": "application/json" },
+        //     });
+        //     const data = await response.json();
+        //     // console.log(data.result);
+        //     chartData['description'] = data.result;
+        //   } catch (err) {
+        //     console.log(err);
+        //   }
+        // }
+
+        
+        const canvas = await html2canvas(canvasElement);
+        const imageDataUrl = canvas.toDataURL('image/png');
+        chartData.dataUrl = imageDataUrl;
+        return chartData;
+      });
+  
+      const chartDataArray = await Promise.all(promises);
+      setChartImages(chartDataArray); 
+    }
+  };
+
+
 
   const stopPrinting = () => setIsPrinting(!isPrinting);
 
   return (
     <>
-      <pre>
+      <pre className='text-font' style={{fontSize:'16px'}}>
         {botResoponse.trim()}
         {botResoponse === response ? "" : "|"}
       </pre>
-      {isButtonVisible && (
-        <button className="stop-messgage" onClick={stopPrinting}>
-          {isPrinting ? "Stop Message" : "Regenerate Message"}
-        </button>
-      )}
+      
 
       <br />
       {queryResponse === false && (
         <>
           {!isButtonVisible && (
-            <pre style={{ color: "#baf3ff" }}>
-              Since this is not a valid SQL query, response couldn't be generated from database.
+            <pre style={{ color: "#ff245d" }}>
+              Since this is not a valid SQL query, response couldn't be
+              generated from database.
             </pre>
           )}
         </>
@@ -82,11 +162,11 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
         Show Query Response
       </Button> */}
 
-          {!isButtonVisible && (
+          {/* {!isButtonVisible && (
             <button className="query-response" onClick={handleShow}>
               Show Query Response
             </button>
-          )}
+          )} */}
           {/* <button className="query-response" onClick={handleShow}>
             Show Query Response
           </button>
@@ -97,13 +177,57 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
             Show Visualization
           </button> */}
 
-          {!isButtonVisible && (
+          {/* {!isButtonVisible && (
             <button
               className="visualization query-response"
               onClick={handleShowVisualization}
             >
-              Show Visualization
+              Show Visualization/Report
             </button>
+          )} */}
+
+          {!isButtonVisible && (
+            <>
+              <Row className='response-result'>
+                <Col 
+                className='col-custom'
+                  md={7}
+                  xs={12}
+                >
+
+                  <ResultTable queryResponse={queryResponse}/>
+                  {/* <pre className="pre-custom">
+                    {JSON.stringify(queryResponse, undefined, 2)}
+                  </pre> */}
+                </Col>
+                <Col
+                  className='col-custom'
+                  md={5}
+                  xs={12}
+                >
+
+                  <div
+                    className="charts-container"
+                    ref={chartsContainerRef}
+                    style={divStyle}
+                  >
+                    <Tooltip title="Toggle full screen">
+                    <IconButton  onClick={toggleFullScreen} style={{ marginLeft: 'auto' }}>
+                      {isFullScreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+                    </IconButton>
+                    </Tooltip>
+                    {!isButtonVisible && (
+                      <Tooltip title="Generate Pdf">
+                    <IconButton  onClick={handleShowVisualization} style={{ marginLeft: '5px' }}>
+                      <PictureAsPdfIcon />
+                    </IconButton>
+                    </Tooltip>
+                    )}
+                    <Chart data={queryResponse} />
+                  </div>
+                </Col>
+              </Row>
+            </>
           )}
 
           <Modal show={show} onHide={handleClose}>
@@ -122,10 +246,33 @@ const BotResponse = ({ response, queryResponse, chatLogRef }) => {
 
           <Modal show={showVisualization} onHide={handleCloseVisualization}>
             <Modal.Header closeButton>
-              <Modal.Title>Visualization</Modal.Title>
+              <Modal.Title>Report</Modal.Title>
             </Modal.Header>
             <Modal.Body>
-              <Chart data={queryResponse} />
+              <PdfDocument
+                aiResponse={botResoponse}
+                queryResp={queryResponse}
+                chartsImg={chartImages}
+                question={question}
+              />
+
+              <button className='button-primary' onClick={generateImages}>
+                Generate Pdf with visualizations
+              </button>
+
+              {/* <PDFDownloadLink document={<PdfDocument aiResponse={botResoponse} queryResp={queryResponse} question={question} chartsImg={chartImages} />} fileName="somename.pdf">
+      {({ blob, url, loading, error }) =>
+        loading ? 'Loading document...' : 'Download now!'
+      }
+    </PDFDownloadLink> */}
+
+              <br />
+              <br />
+              <br />
+              <br />
+              {/* <div className="charts" ref={chartsContainerRef}>
+                <Chart data={queryResponse} />
+              </div> */}
             </Modal.Body>
             <Modal.Footer>
               <Button variant="secondary" onClick={handleCloseVisualization}>

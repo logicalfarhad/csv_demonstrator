@@ -1,33 +1,35 @@
 version: '3.8'
 services:
   backend:
-    container_name: backend_container
+    container_name: llm_backend_container
     restart: always
     pull_policy: build
-    ports:
-      - 4000:80
     build:
       context: ./server
       dockerfile: Dockerfile
     networks:
-      - app
+      - app  
     environment:
       - MYSQL_HOST=mysqldb
-      - MYSQL_USER=user
-      - MYSQL_PASSWORD=dbpassword
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
       - MYSQL_DATABASE=demonstrator
+      - KEYCLOAK_URL=https://auth.ki.nrw/
+      - KEYCLOAK_REALM=kinrw
     env_file:
       - ./server/.env
     depends_on:
-      - mongodb
       - mysqldb
 
   frontend:
-    container_name: frontend_container
+    container_name: llm_frontend_container
     restart: always
     pull_policy: build
     environment:
       - REACT_BACKEND_API_URL=http://backend:4000
+      - REACT_APP_KEYCLOAK_URL=https://auth.ki.nrw/
+      - REACT_APP_KEYCLOAK_REALM=kinrw
+      - REACT_APP_KEYCLOAK_CLIENTID=llm-insight-expert-frontend
     networks:
       - app
     build:
@@ -39,18 +41,20 @@ services:
       - backend
 
   mysqldb:
-    container_name: mysqldb_container
+    container_name: llm_mysqldb_container
     image: mysql:8.0
     restart: always
     networks:
       - app
-    env_file: ./server/.env
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: demonstrator
+      MYSQL_SQL_MODE: "NO_ENGINE_SUBSTITUTION"
+    command: --sql-mode="NO_ENGINE_SUBSTITUTION"
 
   nginx:
-    container_name: nginx_container
+    container_name: llm_nginx_container
+    restart: always
     pull_policy: build
     build:
       context: ./nginx
@@ -59,22 +63,9 @@ services:
     ports:
       - "80:80"
     depends_on:
-      - mongodb
       - mysqldb
       - backend
       - frontend
-  mongodb:
-    container_name: mongodb_container
-    image: mongo:jammy
-    restart: always
-    networks:
-      - app
-    volumes:
-      - mongodb_data:/data/db
-
-volumes:
-  mongodb_data:
-
 
 networks:
   app:

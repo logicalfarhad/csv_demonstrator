@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "LLM Insight Expert",
+  "name": "LLM Insight Expert - An intelligent assistant for ad hoc analyses",
   "icons": [
     {
       "src": "favicon.ico",

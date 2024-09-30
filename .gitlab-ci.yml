@@ -1,0 +1,16 @@
+stages:          # List of stages for jobs, and their order of execution
+  - deploy
+
+deploy-job:      # This job runs in the deploy stage.
+  stage: deploy  
+  environment: production
+  script:
+    - echo "Deploying application..."
+    - echo "Application successfully deployed."
+    - echo "Assuming existing git repo on correct branch..."
+    - cd /data/projects/csv-demonstrator/
+    - git pull
+    - docker compose down -v
+    - docker compose up -d --build --force-recreate
+    - echo "Application successfully deployed."
+    - rm -rf builds/

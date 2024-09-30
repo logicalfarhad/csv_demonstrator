@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from "react";
-import "./signupform.css";
+import "../../style/signupform.css";
 import { useNavigate } from "react-router-dom";
-import SvgComponent from "../SvgComponent";
-//console.log(process.env.REACT_BACKEND_API_URL)
-let backend = "http://localhost:4000"
+// import SvgComponent from "../SvgComponent";
+import logo from "./../../images/ki-nrw.png"
+import {Image } from 'react-bootstrap';
 
-const SignupForm = () => {
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
+const SignupForm =  ({ onSignupSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e) => {
@@ -26,7 +27,8 @@ const SignupForm = () => {
 
       const data = await response.json();
       if (response.status === 201) {
-        navigate("/login");
+        onSignupSuccess(true);
+        // navigate("/login");
       } else {
         setErrorMessage(data.message);
       }
@@ -57,7 +59,11 @@ const SignupForm = () => {
   }, []);
   return (
     <div className="signupFormContainer">
-      <SvgComponent w={50} h={50} stroke="#202123" />
+      <Image style={{ width: "20%" }}
+        src={logo}
+      />
+      <br />
+      {/* <SvgComponent w={50} h={50} stroke="#202123" /> */}
       <h1>Create your account</h1>
       <form onSubmit={handleSignup}>
         <input
@@ -122,7 +128,7 @@ const SignupForm = () => {
             )}
           </i>
         </div>
-        <button type="submit">Continue</button>
+        <button type="submit" className="button-primary">Continue</button>
         {errorMessage.trim() !== " " && <span>{errorMessage}</span>}
       </form>
     </div>

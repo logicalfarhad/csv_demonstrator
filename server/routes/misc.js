@@ -1,80 +1,91 @@
 require('dotenv').config();
 const express = require('express');
 const router = express.Router();
-const jwt = require('jsonwebtoken');
 const { dbConnect } = require('../config/db');
-const createChain = require('../config/conversationChain');
 const fetch = require('node-fetch')
 const connection = dbConnect();
-const chain = createChain();
-const { OpenAI } = require("langchain/llms/openai");
+const historyModule = require('../config/memory');
+const OpenAI = require("openai")
 
-console.log(process.env.MYSQL_DATABASE)
-// Middleware to check authentication token
-const authenticateToken = (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).json({ error: 'Not Authorized' });
+const { getResult } = require('../config/conversationChain');
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+
+const extractColumnInfo = (data) => {
+    // Initialize an empty object to store column information
+    const columnInfo = {};
+
+    // Loop through the array and extract information
+    for (let i = 0; i < data.length; i++) {
+        // Skip empty lines or lines that do not start with a number followed by a dot
+        if (!data[i].match(/^\d+\./) || data[i].trim() === '') continue;
+
+        // Use regex to match and extract columnName and description
+        const matches = data[i].match(/^(\d+)\.\s*(.*?):\s*(.*)$/);
+        if (matches && matches.length === 4) {
+            const columnName = matches[2].trim().toLowerCase(); // Extract and normalize column name
+            const description = matches[3].trim(); // Extract description
+
+            // Store columnName and description in columnInfo object
+            columnInfo[columnName] = description;
+        } else {
+            // Handle the case where the description might not be provided
+            // Extract column name from the beginning of the string
+            const columnNameMatches = data[i].match(/^\d+\.\s*(.*?):/);
+            if (columnNameMatches && columnNameMatches.length === 2) {
+                const columnName = columnNameMatches[1].trim().toLowerCase();
+                columnInfo[columnName] = ''; // Set an empty string as description
+            }
+        }
     }
 
-    const token = authHeader.split(' ')[1];
-    try {
-        jwt.verify(token, process.env.JWT_SECRET);
-        next();
-    } catch (error) {
-        return res.status(401).json({
-            error: 'User session expired, please logout and login again!'
-        });
-    }
+    return columnInfo;
 };
 
-router.post('/saveMetadata', authenticateToken, async (req, res) => {
-    let table_name = '';
+router.post('/saveMetadata', async (req, res) => {
+    let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
     try {
         const metadata = req.body;
-        table_name = 'metadata_' + metadata.tableName.toLowerCase();
-        const metadataSql = `USE ${process.env.MYSQL_DATABASE};\n` +
-            `DROP TABLE IF EXISTS ${table_name};\n` +
-            `CREATE TABLE ${table_name} (Column_Name VARCHAR(50) NOT NULL, Description VARCHAR(200), PRIMARY KEY (Column_Name));\n`;
+        const table_name = `metadata_${metadata.tableName.toLowerCase()}`;
 
-        const valuesSql = metadata.tableData.map(column => {
-            return `('${column.Column}', '${column.Desc}')`;
-        }).join(', ');
+        const metadataSql = `
+            USE ${req.databaseName};
+            DROP TABLE IF EXISTS ${table_name};
+            CREATE TABLE ${table_name} (Column_Name VARCHAR(50) NOT NULL, Description VARCHAR(200), PRIMARY KEY (Column_Name));
+        `;
 
+        const valuesSql = metadata.tableData
+            .map(column => `(${connection.escape(column.Column)}, ${connection.escape(column.Desc)})`)
+            .join(', ');
         const insertSql = `INSERT INTO ${table_name} (Column_Name, Description) VALUES ${valuesSql} ON DUPLICATE KEY UPDATE Description = VALUES(Description);`;
-        const sql = `${metadataSql}${insertSql}`;
+
+        const sql = `${metadataSql} ${insertSql}`;
         await connection.query(sql);
 
-        const descriptionQuery = `SELECT * FROM ${process.env.MYSQL_DATABASE}.${table_name};`;
+        const descriptionQuery = `SELECT * FROM ${req.databaseName}.${table_name};`;
         const [rows] = await connection.query(descriptionQuery);
 
-        let descriptionString = "In the " + table_name + " table, ";
-        console.log(rows)
-        rows.forEach(column => {
-            if (column.Description.trim() !== 'undefined') {
-                const columnName = column.Column_Name;
-                const description = column.Description;
-                descriptionString += `the '${columnName}' column means '${description}', `;
-            }
-        });
+        const descriptionString = rows
+            .filter(column => column.Description.trim() !== 'undefined')
+            .map(column => `the '${column.Column_Name}' column means ${column.Description}`)
+            .join(', ');
 
-        console.log(descriptionString)
-        const result = await chain.call({ input: descriptionString });
-        console.log(result);
-        return res.status(200).json({ response: result.response });
-        // return res.status(200).json({ success: true })
+
+        const metadata_descirption = `<<SYS>>In the ${table_name} table, ${descriptionString}<<SYS>>`
+        historyModule.updateHistory(metadata_descirption)
+        return res.status(200).json({ success: true });
 
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
-
-router.post("/getCoordinates", authenticateToken, async (req, res) => {
+router.post("/getCoordinates", async (req, res) => {
 
     try {
         const { cityName } = req.body;
-        console.log(req.body)
         if (!cityName) {
             res.status(400).json({ error: 'City name is required in the request body' });
             return;
@@ -118,25 +129,23 @@ router.post("/getCoordinates", authenticateToken, async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-router.post('/truncate', authenticateToken, async (req, res) => {
-    console.log(process.env.MYSQL_DATABASE)
+router.post('/truncate', async (req, res) => {
     try {
-
-        await connection.query(`USE ${process.env.MYSQL_DATABASE};`);
+        
+        await connection.query(`USE ${req.databaseName};`);
         await connection.query('SET FOREIGN_KEY_CHECKS=0');
         let sql = `SELECT CONCAT('DROP TABLE ', TABLE_NAME, ';')
             FROM INFORMATION_SCHEMA.tables
-            WHERE TABLE_SCHEMA = '${process.env.MYSQL_DATABASE}';`;
+            WHERE TABLE_SCHEMA = '${req.databaseName}';`;
 
         let [rows] = await connection.query(sql);
-        console.log(rows)
         for (const item of rows) {
             for (const sql of Object.values(item)) {
-                await connection.query(`use ${process.env.MYSQL_DATABASE};${sql}`);
+                await connection.query(`use ${req.databaseName};${sql}`);
             }
         }
         await connection.query('SET FOREIGN_KEY_CHECKS=1');
+        historyModule.emptyHistory()
         return res.status(200).json({ success: true });
     } catch (error) {
         console.error(error);
@@ -146,65 +155,95 @@ router.post('/truncate', authenticateToken, async (req, res) => {
 });
 
 
-router.post('/getSchema', authenticateToken, async (req, res) => {
-    let schema = req.body.schema;
+router.post('/tableCount', async (req, res) => {
     try {
-        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema.toLowerCase()}"`;
+        await connection.query(`USE ${req.databaseName};`);
+        const [rows] = await connection.query(`
+            SELECT COUNT(*) AS tableCount
+            FROM INFORMATION_SCHEMA.tables
+            WHERE TABLE_SCHEMA = '${req.databaseName}';
+        `);
+        return res.status(200).json({ success: true, tableCount: rows[0].tableCount });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false });
+    }
+});
+
+
+
+router.post('/getSchema', async (req, res) => {
+    let schema = req.body.schema;
+    let locale = req.body.locale;
+    let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
+    try {
+        await connection.query(`USE ${req.databaseName};`);
+        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${req.databaseName}' and table_name="${schema.toLowerCase()}"`;
         const [rows] = await connection.query(columnQuery);
-        // console.log(rows);
-
         const [data] = await connection.query(`SELECT * from ${schema} LIMIT 3;`)
-        console.log(data);
         const formattedStrings = data.map(obj => `(${flattenObjectValues(obj)})`).join(', ');
-        //   console.log(formattedStrings)
         const columnNames = rows.map((item) => item.COLUMN_NAME).join(",");
-        // console.log(columnNames);
-        const prompt = `Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.`;
 
-        const llm = new OpenAI({
-            model: "text-davinci-003",
-            temperature: 0,
-            max_tokens: 150,
-            top_p: 1.0,
-            frequency_penalty: 0.0,
-            presence_penalty: 0.0,
-        });
-        let descriptions = await llm.call(prompt);
+        /*
+        const prompt = `[INST]<<SYS>>Return me one short sentence description for each of the sql column for table ${schema} e-g (${columnNames}) and having data with values ${formattedStrings}. Try to make sense of data first, type of data and then rely on column name for description.<</SYS>> \n
+                        1. Please do not include sample value\n
+                        2. Do not include data type\n
+                        3. After column name always put colon : in the result.\n
+                        4. The exact column name and every column should be present in the result.\n
+                        5. Include the column names for which you could not generate any description.[/INST]`;
+        */
+        //  console.log(prompt)
+        // Define the system and user messages
+        const systemMessage = {
+            role: "system",
+            content: (
+                "[INST]<<SYS>>Return a short sentence description for each SQL column in table " +
+                `${schema} (columns: ${columnNames}), describing the nature or purpose of each column. ` +
+                "Consider the data stored and then use the column name to formulate the description.<</SYS>>\n" +
+                "1. Please do not include sample values.\n" +
+                "2. Do not specify the data type.\n" +
+                "3. Place a colon : after each column name in the result.\n" +
+                "4. Ensure every column name is included exactly as it appears.\n" +
+                "5. For example, if a column is named 'Id', the output should be like 1. Id: Description of the Id column.\n" +
+                "6. Include the column names for which you couldn't generate a description.\n[/INST]"
+            )
+        };
+        
+        
+
+     //   console.log(systemMessage)
+
+        const userMessage = {
+            role: "user",
+            content: "Provide descriptions for the SQL columns."
+        };
+
+
+
+        const messages = [systemMessage, userMessage];
+        let descriptions = await getResult(messages,model)
         descriptions = descriptions.trim().split("\n");
         console.log(descriptions)
-
-        for (let i = 0; i < rows.length - 1; i++) {
-            rows[i].description = descriptions[i].split(": ")[1].replace(/[^a-zA-Z\s]/g, '');
-        }
-
-        console.log(rows);
-
+        console.log("###########")
+        const columnObject = extractColumnInfo(descriptions);
+        console.log(columnObject)
+        rows.forEach(obj => {
+            obj.description = columnObject[obj.COLUMN_NAME.toLowerCase()] || 'No description available';
+        });
         return res.status(200).json(rows);
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'An error occurred' });
     }
 });
 
-/*
-router.post('/getSchema', authenticateToken, async (req, res) => {
-    let schema = req.body.schema;
-    try {
-        const columnQuery = `SELECT table_name, column_name FROM information_schema.columns WHERE table_schema = '${process.env.MYSQL_DATABASE}' and table_name="${schema}"`;
-        const [rows] = await connection.query(columnQuery);
-        return res.status(200).json(rows);
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'An error occurred' });
-    }
-});
-*/
-
-
-function flattenObjectValues(obj) {
+const flattenObjectValues = (obj) => {
     return Object.values(obj).map(val => {
         if (typeof val === 'object' && !Array.isArray(val)) {
             return flattenObjectValues(val);
+        } else {
+            return val;
         }
     }).join(',');
 }

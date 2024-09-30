@@ -1,9 +1,7 @@
 import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link } from "react-router-dom";
-//let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
-let backend ="http://localhost:4000"
-console.log(backend)
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const NavLinks = ({ svg, link, text, setChatLog }) => {
   const { dispatch } = useContext(AuthContext);
 

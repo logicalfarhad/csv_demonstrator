@@ -1,8 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { useState } from "react";
 import { Modal, Button, Form } from 'react-bootstrap';
-//let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
-let backend = "http://localhost:4000"
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 console.log(backend)
 const SideNav = () => {
     const [showModal, setShowModal] = useState(false);

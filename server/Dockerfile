@@ -1,4 +1,4 @@
-FROM node:14-slim
+FROM node:21-slim
 
 WORKDIR /app
 
@@ -8,6 +8,6 @@ RUN npm install --production
 
 COPY . .
 
-EXPOSE 80
+EXPOSE 4000
 
 CMD ["npm", "start"]

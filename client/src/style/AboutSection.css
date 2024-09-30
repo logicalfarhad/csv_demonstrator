@@ -1,0 +1,31 @@
+.About-section1{
+    /* margin-top:-15%; */
+    padding: 5%;
+    text-align: left;
+}
+.About-section1 h4{
+    color: var(--primary-font-color);
+    font-weight: normal;
+    font-size: 30px;
+}
+.About-section1 .subheading{
+    color: var(--primary-font-color);
+    font-size: 25px;
+}
+
+.About-section1 .text-muted{
+    color: var(--primary-font-color) !important;
+    font-size: 17px;
+}
+
+/* .About-section1 .row
+{
+    margin-top: 10%;
+} */
+/* .About-img 
+{
+    text-align: center;
+} */
+.About-img img{
+    width: 100%;
+}

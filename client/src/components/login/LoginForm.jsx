@@ -1,16 +1,16 @@
 import React, { useContext, useState } from "react";
-import "../signup/signupform.css";
+import "../../style/signupform.css";
 import { AuthContext } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import SvgComponent from "../SvgComponent";
-//let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
-let backend = "http://localhost:4000"
-//console.log(backend)
+import { Image } from 'react-bootstrap';
+// import SvgComponent from "../SvgComponent";
+import logo from "./../../images/ki-nrw.png"
+let backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 const LoginForm = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [showLoginPassword, setShowLoginPassword] = useState(true);
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
 
   const { dispatch } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -30,7 +30,10 @@ const LoginForm = () => {
 
       if (response.status === 200) {
         dispatch({ type: "LOGIN", payload: data.token });
-        navigate("/");
+        // Introduce a delay before redirection (e.g., 500 milliseconds)
+        setTimeout(() => {
+          navigate("/");
+        }, 500);
       } else {
         setErrorMessage(data.message);
       }
@@ -42,11 +45,15 @@ const LoginForm = () => {
 
   return (
     <div className="signupFormContainer">
-      <SvgComponent w={50} h={50} stroke="#202123" />
+      <Image style={{ width: "10%" }}
+        src={logo}
+      />
+      {/* <SvgComponent w={50} h={50} stroke="#202123" /> */}
+      <br />
       <h1>Welcome Back</h1>
       <form onSubmit={handleLogin}>
         <input
-          type="loginEmail"
+          type="email"
           name="loginEmail"
           id="loginEmail"
           placeholder="login email"
@@ -107,7 +114,7 @@ const LoginForm = () => {
             )}
           </i>
         </div>
-        <button type="submit">Continue</button>
+        <button type="submit" className='button-primary'>Continue</button>
         {errorMessage.trim() !== " " && <span>{errorMessage}</span>}
       </form>
     </div>

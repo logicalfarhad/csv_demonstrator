@@ -1,44 +1,78 @@
-import React, { useState } from "react";
-import Button from "../components/Button";
-import SvgComponent from "../components/SvgComponent";
-import SignupForm from "../components/signup/SignUpForm";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Row, Image, Container, Col } from 'react-bootstrap';
+import { useNavigate, useLocation } from "react-router-dom";
+import { useKeycloak } from "@react-keycloak/web";
+import loginImage from './../images/LLM_KeyVisual_01.jpg';
+import logo from './../images/ki-nrw.png';
+import Footer from "../components/Footer";
+import { useTranslation } from "react-i18next";
+import { FaInfoCircle } from "react-icons/fa"; // Importing an info circle icon
+import '../style/Login.css';  // Import the CSS file for styling
 
 const Login = () => {
-  const [isSignupFormVisible, setIsSignupFormVisible] = useState(false);
-
+  const { keycloak } = useKeycloak();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleClick = async (purpose) => {
-    if (purpose === "signup") {
-      setIsSignupFormVisible(true);
+  useEffect(() => {
+    if (keycloak.authenticated && location.pathname === "/") {
+      navigate('/introduction');
     }
-    if (purpose === "login") {
-      navigate("/login");
-    }
+  }, [keycloak.authenticated, navigate, location.pathname]);
+
+  const handleLogin = () => {
+    console.log("Logging in...");
+    keycloak.login();
+  };
+
+  const handleSignup = () => {
+    console.log("Signing up...");
+    keycloak.register();
   };
 
   return (
-    <>
-      {!isSignupFormVisible ? (
-        <div className="loginContainer">
+    <Container fluid className="vh-100 d-flex flex-column">
+      <Row className="flex-grow-1 align-items-center">
+        <Col xs={12} md={6} className="d-flex flex-column justify-content-center">
           <div className="loginContainerContent">
-            <SvgComponent w={50} h={50} />
-            <h1>Welcome to Demonstrator</h1>
-            <p>Your Ultimate AI Assistant</p>
-            <div className="loginButtonWrapper">
-              <Button text="Log in" handleClick={() => handleClick("login")} />
-              <Button
-                text="Sign up"
-                handleClick={() => handleClick("signup")}
-              />
+            <h1 style={{ fontSize: "40px" }} className="text-left">{t("welcomeLabel")}</h1>
+            <p style={{ fontSize: "25px" }} className="text-left">{t("description")}</p>
+            <p style={{ fontSize: "17px" }} className="text-left">
+              {t("summary")}
+            </p>
+            <p className="text-left">
+              <a href="https://www.iais.fraunhofer.de/de/geschaeftsfelder/enterprise-information-integration/llm-insight-expert.html" target="_blank" rel="noopener noreferrer">
+                <FaInfoCircle className="icon" /> Mehr Informationen
+              </a>
+            </p>
+            <div className="loginButtonWrapper text-center">
+              {!keycloak.authenticated && (
+                <>
+                  <button id="signupButton" className="button-primary me-2" onClick={handleLogin}>
+                    {t("login")}
+                  </button>
+                  <button id="signupButton" className="button-primary me-2" onClick={handleSignup}>
+                    {t("signup")}
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="logoWrapper">
+              <Image src={logo} style={{ width: '190px', height: 'auto' }} />
             </div>
           </div>
-        </div>
-      ) : (
-        <SignupForm />
-      )}
-    </>
+        </Col>
+        <Col xs={12} md={5} className="d-flex justify-content-center">
+          <Image src={loginImage} className="w-100" rounded />
+        </Col>
+      </Row>
+      <Row className="mt-auto">
+        <Col>
+          <Footer />
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

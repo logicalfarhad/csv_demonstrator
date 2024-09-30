@@ -1,288 +1,185 @@
-import React, { useState, useEffect } from "react";
-import { Modal, Button, Form, Spinner, Table } from 'react-bootstrap';
-import { useDropzone } from 'react-dropzone';
-import { Gear, X } from 'react-bootstrap-icons';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Form, Row, Col } from 'react-bootstrap';
+import { Box, Grid, Button } from '@mui/material'; // Removed Typography import
+import { useTranslation } from "react-i18next";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-let backend = 'http://localhost:4000'
+import { useKeycloak } from "@react-keycloak/web";
+import FileUploadComponent from "./FileUploadComponent";
+import FileUploadSection from "./FileUploadSection";
+import MetadataDescriptionTable from "./MetadataDescriptionTable";
+import MetadataCheckModal from "./MetadataCheckModal";
+
+const backend = process.env.NODE_ENV === 'development' ? 'http://localhost:4000' : '/api';
 
 const CSVUpload = () => {
-  const [showModal, setShowModal] = useState(false);
+  const { keycloak } = useKeycloak();
+  const { t } = useTranslation();
   const [selectedFiles, setSelectedFiles] = useState([]);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [showTableModal, setShowTableModal] = useState(false);
   const [tableData, setTableData] = useState([]);
   const [selectedFileNames, setSelectedFileNames] = useState([]);
-  const [showMetadataModal, setShowMetadataModal] = useState(false);
-  const [columnNameTable, setColumnNameTable] = useState([]);
-  const [areFilesUploaded, setAreFilesUploaded] = useState(false);
-  const [isMetadataConfigured, setIsMetadataConfigured] = useState(false);
-  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false)
+  const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
   const [metadataCheckStatus, setMetadataCheckStatus] = useState([]);
+  const [showUploadAllButton, setShowUploadAllButton] = useState(false);
+  const navigate = useNavigate();
 
-  const handleClose = () => {
-    setShowModal(false);
-    resetForm();
-  };
+  // Function to handle the Upload All button click
+  const handleUploadAll = async (event) => {
+    event.preventDefault();
+    if (!keycloak?.authenticated) return;
+    const formData = new FormData();
+    selectedFiles.forEach(file => formData.append('csv', file));
 
-  const handleShow = () => {
-    setShowModal(true);
-    resetForm();
-  };
-
-  const handleShowTableModal = () => {
-    setShowTableModal(true);
-  };
-
-  const handleTableSelectToggle = (index) => {
-    const updatedColumnNameTable = [...columnNameTable];
-    updatedColumnNameTable[index].selected = !updatedColumnNameTable[index].selected;
-    setColumnNameTable(updatedColumnNameTable);
-  };
-
-  const renderTableModalFooter = () => {
-    if (columnNameTable.length > 0) {
-      return (
-        <>
-          <Button variant="primary" onClick={handleJoinModal}>
-            Yes
-          </Button>
-          <Button variant="secondary" onClick={handleCloseTableModal}>
-            No
-          </Button>
-        </>
-      );
-    } else {
-      return (
-        <Button variant="secondary" onClick={handleCloseTableModal}>
-          Close
-        </Button>
-      );
+    try {
+      const data = await fetchDataWithToast(`${backend}/upload`, {
+        method: 'POST',
+        body: formData,
+        headers: { 'Authorization': `Bearer ${keycloak.token}` }
+      });
+      console.log(data);
+      //  navigate("/prompting");
+    } catch (error) {
+      console.error(error);
+      toast.error(t("upload_error"));
     }
   };
 
-  const handleCloseTableModal = async () => {
-    const tableNamesToJoin = new Set(
-      columnNameTable.filter((table) => table.selected)
-        .map((table) => table.tableNames)
-        .flat()
-    );
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
-
+  // Function to handle the Default Upload button click
+  const handleDefaultUpload = async () => {
+    if (!keycloak?.authenticated) return;
     try {
-      const response = await fetch(backend + '/upload/jointables', {
+      const data = await fetchDataWithToast(`${backend}/upload/defaultupload`, {
         method: 'POST',
-        body: JSON.stringify({ tables: [...tableNamesToJoin], shouldJoin: false }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': bearer
+          'Authorization': `Bearer ${keycloak.token}`
         }
       });
-
-      if (response.ok) {
-        await response.json();
-        setShowTableModal(false);
-        toast.success('CSV uploaded without joining!', {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      } else {
-        toast.error('Error joining tables!', {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      }
+      console.log(data);
+      navigate("/prompting");
     } catch (error) {
-      console.log(error);
-      toast.error('Error joining tables!', {
-        position: toast.POSITION.TOP_RIGHT,
-      });
+      console.error(error);
+      toast.error(t("default_upload_error"));
     }
   };
 
-  useEffect(() => {
-    if (columnNameTable.length > 0) {
-      handleShowTableModal();
-    }
-  }, [columnNameTable]);
+  // Handle file drop
+  const handleFileDrop = (acceptedFiles) => {
+    const newFiles = acceptedFiles.filter(file => !selectedFiles.some(selectedFile => selectedFile.name === file.name));
+    setSelectedFiles(prevFiles => [...prevFiles, ...newFiles]);
+    setShowUploadAllButton(true); // Show the Upload All button when files are selected
+  };
 
-  const handleJoinModal = async () => {
-    const tableNamesToJoin = new Set(
-      columnNameTable.filter((table) => table.selected)
-        .map((table) => table.tableNames)
-        .flat()
-    );
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
-
-    try {
-      const response = await fetch(backend + '/upload/jointables', {
-        method: 'POST',
-        body: JSON.stringify({ tables: [...tableNamesToJoin], shouldJoin: true }),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': bearer
-        }
-      });
-
-      if (response.ok) {
-        await response.json();
-        setShowTableModal(false);
-        toast.success('Tables joined successfully!', {
-          position: toast.POSITION.TOP_RIGHT,
+  // Fetch data with toast notifications
+  const fetchDataWithToast = (url, requestOptions, file) => {
+    const promise = new Promise((resolve, reject) => {
+      fetch(url, requestOptions)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+          return response.json();
+        })
+        .then(data => {
+          resolve(data);
+        })
+        .catch(error => {
+          reject(error);
         });
-      } else {
-        toast.error('Error joining tables!', {
-          position: toast.POSITION.TOP_RIGHT,
-        });
+    });
+    const toastMessage = file ?
+      { pending: `Please wait uploading ${file}`, success: `Successfully upload ${file}`, error: `Error uploading ${file}` } :
+      { pending: "Please wait", success: "Success", error: "Error" };
+    toast.promise(promise, toastMessage);
+    return promise;
+  };
+
+
+
+  // Configure metadata for the selected file
+  const handleConfigureMetadata = (input) => {
+    if (!keycloak || !keycloak.authenticated) return;
+    const accessToken = keycloak.token;
+    // Get the model from localStorage
+    const model = localStorage.getItem('selectedModel') || '';
+    const schema = typeof input === 'string' ? input : input.name.split('.')[0].toLowerCase();
+    setSelectedFileNames(schema);
+    const requestOptions = {
+      method: 'POST',
+      body: JSON.stringify({ schema: schema }),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+        'X-Model': model
       }
-    } catch (error) {
-      console.log(error);
-      toast.error('Error joining tables!', {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-    }
-  };
-
-  const resetForm = () => {
-    setSelectedFiles([]);
-  };
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    accept: {
-      'text/csv': ['.csv']
-    },
-    onDrop: async (acceptedFiles) => {
-      const newFiles = acceptedFiles.filter((file) => !selectedFileNames.includes(file.name));
-      setSelectedFiles([...selectedFiles, ...newFiles]);
-
-      try {
-        await Promise.all(newFiles.map(file => handleUpload(file)));
-        setAreFilesUploaded(true);
-        let colmNames = await getColumnName();
-
-        const columnNameTableWithSelection = colmNames.map((table) => ({
-          ...table,
-          selected: false,
-        }));
-        setColumnNameTable(columnNameTableWithSelection);
-
-        if (colmNames.length === 0) {
-          let tableNamesToJoin = [];
-          let bearer = 'Bearer ' + window.localStorage.getItem("token");
-          try {
-            const response = await fetch(backend + '/upload/jointables', {
-              method: 'POST',
-              body: JSON.stringify({ tables: tableNamesToJoin, shouldJoin: false }),
-              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'Authorization': bearer
-              }
-            });
-            await response.json();
-            setShowTableModal(false);
-          } catch (error) {
-            console.log(error);
+    };
+    fetchDataWithToast(backend + '/misc/getSchema', requestOptions)
+      .then(data => {
+        setIsMetadataModalOpen(false)
+        const uniqueColumnNames = new Set();
+        const newData = [];
+        for (const item of data) {
+          const columnName = item.COLUMN_NAME;
+          const Desc = item.description;
+          if (!uniqueColumnNames.has(columnName) && columnName !== "id") {
+            uniqueColumnNames.add(columnName);
+            newData.push({ Column: columnName, Desc: Desc });
           }
         }
-      } catch (error) {
-        console.error(error);
-      }
-    },
-  });
-
-  const getColumnName = async () => {
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
-    try {
-      const response = await fetch(backend + '/upload/gettables', {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': bearer
-        }
+        setTableData(newData);
+      })
+      .catch(error => {
+        console.log(error);
       });
-      let data = await response.json();
-      console.log(data);
-      return data;
-    } catch (error) {
-      console.log(error);
-    }
   };
 
-  const handleConfigureMetadata = async (file) => {
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
-    let schema = file.name.split('.')[0].toLowerCase();
-    setSelectedFileNames(schema);
-    try {
-      const response = await fetch(backend + '/misc/getSchema', {
-        method: 'POST',
-        body: JSON.stringify({ schema: schema }),
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': bearer
-        }
-      });
-      let data = await response.json();
-      const uniqueColumnNames = new Set();
-      const newData = [];
-      for (const item of data) {
-        const columnName = item.COLUMN_NAME;
-        const Desc = item.description;
-        if (!uniqueColumnNames.has(columnName) && columnName !== "id") {
-          uniqueColumnNames.add(columnName);
-          newData.push({ Column: columnName, Desc: Desc });
-        }
-      }
-      setTableData(newData);
-    } catch (error) {
-      console.log(error);
-    }
-    setShowMetadataModal(true);
-  };
 
-  const handleCloseMetadataModal = () => {
-    setShowMetadataModal(false);
-  };
-  const handleCloseMetadataConfigModal = () => {
-    setIsMetadataModalOpen(false);
-  };
+  const handleCloseMetadataModal = () => setTableData([]);
+  const handleCloseMetadataConfigModal = () => setIsMetadataModalOpen(false);
 
+  // Check metadata
   const handleCheckMetaData = async () => {
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
+    if (!keycloak?.authenticated) return;
     try {
-      const response = await fetch(backend + '/upload/checkmetadata', {
+      const response = await fetch(`${backend}/upload/checkmetadata`, {
         method: 'POST',
-        //  body: JSON.stringify({ tableNames: [...tableNames] }),
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': bearer
+          'Authorization': `Bearer ${keycloak.token}`
         }
       });
-      let status = await response.json();
-      //  console.log(status);
+      const status = await response.json();
       setMetadataCheckStatus(status);
-      setIsMetadataModalOpen(true); // Open the Metadata Configuration modal
-      console.log(metadataCheckStatus);
+      setIsMetadataModalOpen(true);
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      toast.error(t("metadata_check_error"));
     }
   };
+
+  const handleColumnDescriptionChange = (newData) => setTableData(newData);
 
   const handleRemoveFile = (index) => {
-    const newSelectedFiles = [...selectedFiles];
-    newSelectedFiles.splice(index, 1);
-    setSelectedFiles(newSelectedFiles);
+    setSelectedFiles(prevFiles => {
+      const newFiles = [...prevFiles];
+      newFiles.splice(index, 1);
+      if (newFiles.length === 0) {
+        setShowUploadAllButton(false); // Hide Upload All button if no files are left
+      }
+      return newFiles;
+    });
   };
 
+  // Save metadata
   const handleMetaDataSave = async () => {
-    setIsSaving(true);
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
-
+    if (!keycloak || !keycloak.authenticated) return;
+    const accessToken = keycloak.token;
+    const model = localStorage.getItem('selectedModel') || '';
     try {
       const response = await fetch(backend + '/misc/saveMetadata', {
         method: 'POST',
@@ -293,16 +190,17 @@ const CSVUpload = () => {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': bearer
+          'Authorization': `Bearer ${accessToken}`,
+          'X-Model': model,
         }
       });
-
       const data = await response.json();
       console.log(data);
       if (response.ok) {
         toast.success('Column description added!', {
           position: toast.POSITION.TOP_RIGHT,
         });
+        setTableData([]);
       } else {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -311,268 +209,105 @@ const CSVUpload = () => {
         position: toast.POSITION.TOP_RIGHT,
       });
       console.error(error);
-    } finally {
-      setIsSaving(false);
     }
   };
 
-  const handleUpload = async (file) => {
-    setIsUploading(true);
-    let bearer = 'Bearer ' + window.localStorage.getItem("token");
-    const formData = new FormData();
-    formData.append('csv', file);
-
-    try {
-      const response = await fetch(backend + '/upload', {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Authorization': bearer
-        },
-      });
-
-      if (response.ok) {
-        toast.success('CSV files uploaded successfully!', {
-          position: toast.POSITION.TOP_RIGHT,
-        });
-      } else {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-    } catch (error) {
-      toast.error('Error uploading CSV files!', {
-        position: toast.POSITION.TOP_RIGHT,
-      });
-      console.error(error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
 
   return (
-    <>
-      <div
-        className="sideMenuButton"
-        onClick={handleShow}>
-        <span>+</span>
-        Upload CSV
-      </div>
-
-      <Modal show={showModal} size="lg" onHide={handleClose}>
-        <Modal.Header closeButton>
-          <Modal.Title>CSV file upload</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
+    <div className="data-upload-section">
+      <Box p={3} sx={{ width: '50%' }}>
+        <h2 style={{ marginBottom: '16px', fontSize: '25px' }}>
+          {t("upload_instructions_title")}
+        </h2>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step1")}
+        </p>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step2")}
+        </p>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step3")}
+        </p>
+        <p style={{ fontSize: '17px' }}>
+          {t("upload_instructions_step4")}
+        </p>
+      </Box>
+      <Grid container spacing={1} alignItems="center" style={{ marginTop: '16px' }}>
+        <Grid item xs={4}>
+          <FileUploadComponent onFileDrop={handleFileDrop} t={t} />
+        </Grid>
+        <Grid item xs={1} container justifyContent="center" alignItems="center">
+          {/* Text "OR" */}
+          <span style={{ margin: '0 10px', textAlign: 'center', fontSize: '30px' }}>
+            OR
+          </span>
+        </Grid>
+        <Grid item xs={4} container justifyContent="flex-start">
+          {/* Test Data Button */}
+          <Button
+            variant="text"
+            className="mt-2"
+            onClick={handleDefaultUpload}
+            style={{ marginLeft: '0' }}
+          >
+            {t("menu2_btn_use_testdata")}
+          </Button>
+        </Grid>
+      </Grid>
+      <Row>
+        <Col md={6} xs={12}>
           <Form>
-            <div {...getRootProps()} style={dropzoneStyles}>
-              <input {...getInputProps()} />
-              {isDragActive ? (
-                <p>Drop the CSV file(s) here...</p>
-              ) : (
-                <p>Drag 'n' drop CSV file(s) here, or click to select</p>
-              )}
-            </div>
-            {selectedFiles.length > 0 && (
-              <div>
-                <h5>Selected Files:</h5>
-                <Table striped bordered hover>
-                  <thead>
-                    <tr>
-                      <th>File Name</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedFiles.map((file, index) => (
-                      <tr key={index}>
-                        <td>{file.name}</td>
-                        <td>
-                          <Button
-                            variant="info"
-                            size="sm"
-                            className="me-2"
-                            onClick={() => handleConfigureMetadata(file)}
-                          >
-                            <Gear size={16} />
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleRemoveFile(index)}
-                          >
-                            <X size={16} />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>
-            )}
+            <FileUploadSection
+              selectedFiles={selectedFiles}
+              handleConfigureMetadata={handleConfigureMetadata}
+              handleRemoveFile={handleRemoveFile}
+              t={t}
+            />
           </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          {/* Check Columns button with disabled attribute */}
-          <Button
-            variant="primary"
-            onClick={handleShowTableModal}
-            disabled={!areFilesUploaded}
-          >
-            Check Columns
+        </Col>
+      </Row>
+      <Row>
+        <Col md={6} xs={12} style={{ display: 'flex', alignItems: 'center' }}>
+          <Button variant="text" className="mt-2" onClick={handleCheckMetaData}>
+            {t("menu2_btn_check_metadata")}
           </Button>
-          {/* Check Metadata button with disabled attribute */}
-          <Button
-            variant="primary"
-            onClick={handleCheckMetaData}
-            disabled={!areFilesUploaded || isMetadataConfigured}
-          >
-            Check Metadata
-          </Button>
-          <Button variant="secondary" onClick={handleClose}>
-            Close
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          {/* Upload All Button aligned with Check Metadata button */}
+          {showUploadAllButton && (
+            <Button
+              variant="text"
+              className="mt-2"
+              onClick={handleUploadAll}
+              disabled={!showUploadAllButton}
+            >
+              {t("menu2_upload_all_btn")}
+            </Button>
+          )}
+          <br />
+          <hr style={{ borderTop: "5px solid grey", marginTop: '10px' }} />
+          <br />
+        </Col>
+      </Row>
 
-      <Modal show={showMetadataModal} onHide={handleCloseMetadataModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Metadata Configuration</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {tableData.length > 0 && (
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Columns</th>
-                  <th>Desc</th>
-                </tr>
-              </thead>
-              <tbody>
-                {tableData.map((data, index) => (
-                  <tr key={index}>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        disabled
-                        value={data.Column}
-                        onChange={(event) => {
-                          const newData = [...tableData];
-                          newData[index].Column = event.target.value;
-                          setTableData(newData);
-                        }}
-                      />
-                    </td>
-                    <td>
-                      <Form.Control
-                        type="text"
-                        value={data.Desc}
-                        onChange={(event) => {
-                          const newData = [...tableData];
-                          newData[index].Desc = event.target.value;
-                          setTableData(newData);
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseMetadataModal}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleMetaDataSave} disabled={isSaving || isUploading}>
-            {isSaving ? <Spinner animation="border" size="sm" /> : "Save"}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-      <Modal show={isMetadataModalOpen} onHide={handleCloseMetadataConfigModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Metadata Configuration</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {metadataCheckStatus.length > 0 && (
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Table Name</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {metadataCheckStatus.map((item, index) => (
-                  <tr key={index}>
-                    <td>{item.table_name}</td>
-                    <td>
-                      {item.exists ? (
-                        <span>&#10004; Configured</span>
-                      ) : (
-                        <span>&#10008; Not Configured</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={handleCloseMetadataConfigModal}>
-            Close
-          </Button>
-          {/* Add a button here if you want some action */}
-        </Modal.Footer>
-      </Modal>
-      <Modal show={showTableModal} onHide={handleCloseTableModal}>
-        <Modal.Header closeButton>
-          <Modal.Title>Do you want to join these tables?</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {columnNameTable.length > 0 ? (
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Select</th>
-                  <th>Common Column</th>
-                  <th>Table</th>
-                </tr>
-              </thead>
-              <tbody>
-                {columnNameTable.map((item, index) => (
-                  <tr key={index}>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={item.selected}
-                        onChange={() => handleTableSelectToggle(index)}
-                      />
-                    </td>
-                    <td>{item.columnName}</td>
-                    <td>{item.tableNames.join(", ")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
-          ) : (
-            <p>There are no common column names.</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          {renderTableModalFooter()}
-        </Modal.Footer>
-      </Modal>
+      {tableData.length > 0 && (
+        <MetadataDescriptionTable
+          tableData={tableData}
+          onColumnDescriptionChange={handleColumnDescriptionChange}
+          handleMetaDataSave={handleMetaDataSave}
+          handleCloseMetadataModal={handleCloseMetadataModal}
+          t={t}
+        />
+      )}
+
+      <MetadataCheckModal
+        isMetadataModalOpen={isMetadataModalOpen}
+        handleCloseMetadataConfigModal={handleCloseMetadataConfigModal}
+        metadataCheckStatus={metadataCheckStatus}
+        handleGearIconClick={handleConfigureMetadata}
+        t={t}
+      />
       <ToastContainer autoClose={500} />
-    </>
+    </div>
   );
-};
-
-const dropzoneStyles = {
-  border: '2px dashed #cccccc',
-  borderRadius: '4px',
-  padding: '20px',
-  textAlign: 'center',
-  cursor: 'pointer',
 };
 
 export default CSVUpload;
