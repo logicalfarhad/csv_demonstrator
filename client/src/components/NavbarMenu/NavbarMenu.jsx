@@ -97,8 +97,8 @@ const NavbarMenu = () => {
               <Form.Group controlId="modelSelect" className="d-flex align-items-center mb-0"> 
                 <Form.Label className="mb-0 me-2">Model:</Form.Label> 
                 <Form.Select aria-label="Select Model"  value={selectedModel} onChange={handleModelChange}>
-                  <option value="Gpt">Gpt</option>
-                  <option value="Mistral">Mistral</option>
+                  <option value="Gpt-4o">Gpt-4o</option>
+                  <option value="Mistral-7B-Instruct-v0.3_t2t">Mistral-7B-Instruct-v0.3_t2t</option>
                 </Form.Select>
               </Form.Group>
               {!!keycloak.authenticated && (
