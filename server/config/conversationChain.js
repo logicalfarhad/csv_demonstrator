@@ -29,7 +29,7 @@ const createChain = () => {
 const getResult = async (messages,model) => {
     console.log("Model****", model)
     let GptApiKey= model.includes('Gpt')? OPENAI_API_KEY : ''
-    let requestURL = model.includes('Gpt')? 'gpt-4o/chat' : 'Mistral-7B-Instruct-v0.3_t2t/chat'
+    let requestURL = model.includes('Gpt')? 'gpt-3.5-turbo/chat' : 'Mistral-7B-Instruct-v0.3_t2t/chat'
     const options = {
         method: 'POST',
         headers: {
