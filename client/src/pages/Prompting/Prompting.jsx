@@ -214,16 +214,14 @@ const Prompting = () => {
                     <Col className="d-grid gap-2" md={4} xs={6}>
                       <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q1').textContent)}>
                         <div className='text-font'>
-                          <div><strong>{t("menu3_prompt_explain_dataset_title")}</strong></div>
-                          <div style={{ marginTop: 10 }} id="q1">{t("menu3_prompt_explain_dataset_des")}</div>
+                          <div style={{ marginTop: 10 }} id="q1"><p><strong>{t("menu3_prompt_explain_dataset_title")}</strong></p> <p>{t("menu3_prompt_explain_dataset_des")}</p></div>
                         </div>
                       </Button>
                     </Col>
                     <Col className="d-grid gap-2" md={4} xs={6}>
                       <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q2').textContent)}>
                         <div className='text-font'>
-                          <div><strong>{t("menu3_prompt_rows_cnt")}</strong></div>
-                          <div style={{ marginTop: 10 }} id="q2">{t("menu3_prompt_rows_cnt_inst")}</div>
+                          <div style={{ marginTop: 10 }} id="q2"><p><strong>{t("menu3_prompt_rows_cnt")}</strong></p> <p>{t("menu3_prompt_rows_cnt_inst")}</p></div>
                         </div>
                       </Button>
                     </Col>
@@ -237,16 +235,14 @@ const Prompting = () => {
                     <Col className="d-grid gap-2" md={4} xs={6}>
                       <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q3').textContent)}>
                         <div className='text-font'>
-                          <div><strong>{t("menu3_prompt_selling_products")}</strong></div>
-                          <div style={{ marginTop: 10 }} id="q3">{t("menu3_prompt_selling_top_products")}</div>
+                          <div style={{ marginTop: 10 }} id="q3"><p><strong>{t("menu3_prompt_selling_products")}</strong></p> <p>{t("menu3_prompt_selling_top_products")}</p></div>
                         </div>
                       </Button>
                     </Col>
                     <Col className="d-grid gap-2" md={4} xs={6}>
                       <Button variant="light" onClick={() => setInputPrompt(document.querySelector('#q4').textContent)}>
                         <div className='text-font'>
-                          <div><strong>{t("menu3_prompt_selling_category")}</strong></div>
-                          <div style={{ marginTop: 10 }} id="q4">{t("menu3_prompt_selling_category_list")}</div>
+                          <div style={{ marginTop: 10 }} id="q4"><p><strong>{t("menu3_prompt_selling_category")}</strong></p> <p>{t("menu3_prompt_selling_category_list")}</p></div>
                         </div>
                       </Button>
                     </Col>
