@@ -215,40 +215,47 @@ const CSVUpload = () => {
 
   return (
     <div className="data-upload-section">
-      <Box p={3} sx={{ width: '50%' }}>
-        <h2 style={{ marginBottom: '16px', fontSize: '25px' }}>
+      <Box
+        p={3}
+        sx={{
+          width: {
+            xs: "100%",
+            lg: "50%",
+          },
+        }}
+      >
+        <h2 style={{ marginBottom: "16px", fontSize: "25px" }}>
           {t("upload_instructions_title")}
         </h2>
-        <p style={{ fontSize: '17px' }}>
-          {t("upload_instructions_step1")}
-        </p>
-        <p style={{ fontSize: '17px' }}>
-          {t("upload_instructions_step2")}
-        </p>
-        <p style={{ fontSize: '17px' }}>
-          {t("upload_instructions_step3")}
-        </p>
-        <p style={{ fontSize: '17px' }}>
-          {t("upload_instructions_step4")}
-        </p>
+        <p style={{ fontSize: "17px" }}>{t("upload_instructions_step1")}</p>
+        <p style={{ fontSize: "17px" }}>{t("upload_instructions_step2")}</p>
+        <p style={{ fontSize: "17px" }}>{t("upload_instructions_step3")}</p>
+        <p style={{ fontSize: "17px" }}>{t("upload_instructions_step4")}</p>
       </Box>
-      <Grid container spacing={1} alignItems="center" style={{ marginTop: '16px' }}>
-        <Grid item xs={4}>
+      <Grid
+        container
+        spacing={1}
+        alignItems="center"
+        style={{ marginTop: "16px" }}
+      >
+        <Grid item md={3} xs={12}>
           <FileUploadComponent onFileDrop={handleFileDrop} t={t} />
         </Grid>
-        <Grid item xs={1} container justifyContent="center" alignItems="center">
+        <Grid item md={1} xs={12} container justifyContent="center" alignItems="center">
           {/* Text "OR" */}
-          <span style={{ margin: '0 10px', textAlign: 'center', fontSize: '30px' }}>
+          <span
+            style={{ margin: "0 10px", textAlign: "center", fontSize: "30px" }}
+          >
             OR
           </span>
         </Grid>
-        <Grid item xs={4} container justifyContent="flex-start">
+        <Grid item md={3} xs={12} container justifyContent="flex-start">
           {/* Test Data Button */}
           <Button
             variant="text"
             className="mt-2"
             onClick={handleDefaultUpload}
-            style={{ marginLeft: '0' }}
+            style={{ marginLeft: "0" }}
           >
             {t("menu2_btn_use_testdata")}
           </Button>
@@ -267,7 +274,7 @@ const CSVUpload = () => {
         </Col>
       </Row>
       <Row>
-        <Col md={6} xs={12} style={{ display: 'flex', alignItems: 'center' }}>
+        <Col md={6} xs={12} style={{ display: "flex", alignItems: "center" }}>
           <Button variant="text" className="mt-2" onClick={handleCheckMetaData}>
             {t("menu2_btn_check_metadata")}
           </Button>
@@ -283,7 +290,7 @@ const CSVUpload = () => {
             </Button>
           )}
           <br />
-          <hr style={{ borderTop: "5px solid grey", marginTop: '10px' }} />
+          <hr style={{ borderTop: "5px solid grey", marginTop: "10px" }} />
           <br />
         </Col>
       </Row>
@@ -306,6 +313,11 @@ const CSVUpload = () => {
         t={t}
       />
       <ToastContainer autoClose={500} />
+
+      <br />
+      <br />
+      <br />
+      <br />
     </div>
   );
 };
