@@ -249,18 +249,27 @@ const CSVUpload = () => {
             OR
           </span>
         </Grid>
-        <Grid item md={3} xs={12} container justifyContent="flex-start">
+        <Grid item md={3} xs={12} container justifyContent="flex-start" style={testDataStyles}>
           {/* Test Data Button */}
           <Button
             variant="text"
-            className="mt-2"
+            className="mt-2 text-font"
             onClick={handleDefaultUpload}
-            style={{ marginLeft: "0" }}
+            style={{ width: "100%", height: "100%", marginLeft: "0", display: 'flex', justifyContent: 'center', alignItems: 'center', }}
+            sx={{
+              '&:hover': {
+                backgroundColor: 'transparent',
+                boxShadow: 'none',
+                color: '#55555'
+              },
+            }}
           >
             {t("menu2_btn_use_testdata")}
           </Button>
         </Grid>
       </Grid>
+<br />
+
       <Row>
         <Col md={6} xs={12}>
           <Form>
@@ -320,6 +329,18 @@ const CSVUpload = () => {
       <br />
     </div>
   );
+};
+
+
+const testDataStyles = {
+  border: '2px dashed #cccccc',
+  borderRadius: '4px',
+  marginLeft: '20px',
+  padding: '20px',
+  textAlign: 'center',
+  cursor: 'pointer',
+  width: '100%',
+  height: '150px',
 };
 
 export default CSVUpload;

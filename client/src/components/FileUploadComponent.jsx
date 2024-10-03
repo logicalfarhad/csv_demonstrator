@@ -33,6 +33,8 @@ const dropzoneStyles = {
   padding: '20px',
   textAlign: 'center',
   cursor: 'pointer',
+  width: '100%',
+  height: '150px',
 };
 
 export default FileUploadComponent;

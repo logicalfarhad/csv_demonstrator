@@ -56,8 +56,8 @@
 }
 
 .text-font {
-  font-family: var(--text-font);
-  color: var(--primary-font-color);
+  font-family: var(--text-font) !important;
+  color: var(--primary-font-color) !important;
 }
 
 .App {
