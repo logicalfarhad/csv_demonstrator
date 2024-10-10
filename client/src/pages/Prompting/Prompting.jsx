@@ -88,6 +88,7 @@ const Prompting = () => {
               chatPrompt: inputPrompt,
               botMessage: data.query,
               queryResult: data.queryResult,
+              llmModel: model
             },
           ]);
           setErr(false);
@@ -185,6 +186,7 @@ const Prompting = () => {
                                 chatLogRef={chatLogRef}
                                 queryResponse={chat.queryResult}
                                 question={chat.chatPrompt}
+                                llmModel={chat.llmModel}
                               />
                             </div>
                           ) : err ? (

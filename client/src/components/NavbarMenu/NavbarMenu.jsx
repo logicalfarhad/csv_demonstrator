@@ -57,6 +57,12 @@ const NavbarMenu = () => {
       if (storedModel) {
         setSelectedModel(storedModel);
       }
+      else{
+        // Set default model to "Gpt-3.5-turbo" if no value exists
+        const defaultModel = 'Gpt-3.5-turbo';
+        setSelectedModel(defaultModel);
+        localStorage.setItem('selectedModel', defaultModel);
+      }
     }, []);
   
     // Handle the selection change and save to localStorage

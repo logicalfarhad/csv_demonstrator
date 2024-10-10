@@ -17,7 +17,7 @@ import Tooltip from '@mui/material/Tooltip';
 
 
 
-const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
+const BotResponse = ({ response, queryResponse, question, chatLogRef, llmModel }) => {
   const [botResoponse, setBotResponse] = useState("");
   const [isPrinting, setIsPrinting] = useState(true);
   const [isButtonVisible, setIsButtonVisible] = useState(false);
@@ -155,6 +155,9 @@ const BotResponse = ({ response, queryResponse, question, chatLogRef }) => {
           )}
         </>
       )}
+      <div style={{fontWeight:'bold', textAlign:'right', fontSize:'18px'}}>
+      <p>{llmModel}</p>
+      </div>
 
       {queryResponse !== undefined && queryResponse.length && (
         <>
