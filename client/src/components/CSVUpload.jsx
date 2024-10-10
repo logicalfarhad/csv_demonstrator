@@ -246,7 +246,7 @@ const CSVUpload = () => {
           <span
             style={{ margin: "0 10px", textAlign: "center", fontSize: "30px" }}
           >
-            OR
+            {t("menu2_btn_use_testdata_or")}
           </span>
         </Grid>
         <Grid item md={3} xs={12} container justifyContent="flex-start" style={testDataStyles}>
