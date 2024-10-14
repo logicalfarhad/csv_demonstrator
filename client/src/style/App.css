@@ -256,7 +256,7 @@ nav svg {
 }
 
 .chatLogWrapper {
-  height: 80vh;
+  height: 73vh;
   overflow-y: auto;
 }
 
@@ -366,6 +366,7 @@ nav svg {
 }
 
 .inputPromptWrapper {
+  z-index: 99999;
   margin-top: 40px;
   left: 50%;
   right: 50%;
