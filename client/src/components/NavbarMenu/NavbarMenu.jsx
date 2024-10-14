@@ -100,6 +100,7 @@ const NavbarMenu = () => {
               Log out
             </button> */}
             <Nav className="d-flex align-items-center"> 
+              {location.pathname !== '/introduction' &&
               <Form.Group controlId="modelSelect" className="d-flex align-items-center mb-0"> 
                 <Form.Label className="mb-0 me-2">Model:</Form.Label> 
                 <Form.Select aria-label="Select Model"  value={selectedModel} onChange={handleModelChange}>
@@ -107,6 +108,7 @@ const NavbarMenu = () => {
                   <option value="Mistral-7B-Instruct-v0.3_t2t">Mistral-7B-Instruct-v0.3_t2t</option>
                 </Form.Select>
               </Form.Group>
+              }
               {!!keycloak.authenticated && (
                 <button className='button-primary' style={{ margin: '2px' }} onClick={() => handleLogout()}>
                   {t("logout")} ({keycloak.tokenParsed.preferred_username})
