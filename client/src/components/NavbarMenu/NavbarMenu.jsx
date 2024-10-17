@@ -58,8 +58,8 @@ const NavbarMenu = () => {
         setSelectedModel(storedModel);
       }
       else{
-        // Set default model to "Gpt-3.5-turbo" if no value exists
-        const defaultModel = 'Gpt-3.5-turbo';
+        // Set default model to "Gpt-4o-mini" if no value exists
+        const defaultModel = 'Gpt-4o-mini';
         setSelectedModel(defaultModel);
         localStorage.setItem('selectedModel', defaultModel);
       }
@@ -104,6 +104,7 @@ const NavbarMenu = () => {
               <Form.Group controlId="modelSelect" className="d-flex align-items-center mb-0"> 
                 <Form.Label className="mb-0 me-2">Model:</Form.Label> 
                 <Form.Select aria-label="Select Model"  value={selectedModel} onChange={handleModelChange}>
+                  <option value="Gpt-4o-mini">Gpt-4o-mini</option>
                   <option value="Gpt-3.5-turbo">Gpt-3.5-turbo</option>
                   <option value="Mistral-7B-Instruct-v0.3_t2t">Mistral-7B-Instruct-v0.3_t2t</option>
                 </Form.Select>
