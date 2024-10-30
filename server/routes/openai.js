@@ -160,7 +160,10 @@ router.post('/', async (req, res) => {
         if (!result) {
             return res.status(400).json({
                 queryResult: false,
-                query: locale=='de'? "Failed to get result from AI. german text" :'Failed to get result from AI.'
+                query: locale=='de'? 
+                "Leider kann ich Ihre Frage nicht beantworten und Ihnen die angeforderten Daten nicht zur Verfügung stellen, was auf technische Probleme in unserem Dienst zurückzuführen sein könnte. Bitte wählen Sie ein anderes Modell. Sollte dieser Fehler erneut auftreten, versuchen Sie es bitte später noch einmal." 
+                :
+                'Unfortunately, I cannot answer your question and cannot provide you with the requested data, which may be due to technical problems in our service. Please select a different model. If this error occurs again, please try again later. '
             });
         }
 
@@ -168,7 +171,10 @@ router.post('/', async (req, res) => {
         if (!sqlQuery) {
             return res.status(400).json({
                 queryResult: false,
-                query: locale=='de'? "Failed to extract sql query german text" : 'Failed to extract SQL query.'
+                query: locale=='de'? 
+                "Leider kann ich Ihre Frage nicht beantworten oder Ihnen die gewünschten Daten zur Verfügung stellen. Dies könnte daran liegen, dass ich Ihre Anfrage nicht richtig verstanden habe oder dass die Frage anhand der hochgeladenen Daten nicht beantwortet werden kann. Bitte formulieren Sie die Frage anders und versuchen Sie es erneut. " 
+                : 
+                'Unfortunately, I cannot answer your question or provide you with the requested data. This could be due to the fact that I have not understood your enquiry correctly or that the question cannot be answered from the uploaded data. Please rephrase the question and try again.'
             });
         }
 
@@ -178,7 +184,10 @@ router.post('/', async (req, res) => {
         // Return the query result
         if (rows.length > 0)
             return res.status(200).json({ queryResult: rows, query: sqlQuery });
-        return res.status(200).json({ queryResult: false, query: locale=='de'? " Please rephrase the question and try again german text" : "Please rephrase the question and try again" });
+        return res.status(200).json({ queryResult: false, query: locale=='de'? 
+            "Leider kann ich Ihre Frage nicht beantworten oder Ihnen die gewünschten Daten zur Verfügung stellen. Dies könnte daran liegen, dass ich Ihre Anfrage nicht richtig verstanden habe oder dass die Frage anhand der hochgeladenen Daten nicht beantwortet werden kann. Bitte formulieren Sie die Frage anders und versuchen Sie es erneut. " 
+            : 
+            'Unfortunately, I cannot answer your question or provide you with the requested data. This could be due to the fact that I have not understood your enquiry correctly or that the question cannot be answered from the uploaded data. Please rephrase the question and try again.' });
     } catch (error) {
         console.error(error);
         const errorDescription = await errorMessage(locale,error.sqlMessage,req)
@@ -216,11 +225,11 @@ const errorMessage = async (locale, error,req) => {
     try {
         errorDescription = await getResult(messages,model);
         console.log(errorDescription)
-        errorDescription = locale==='de' ? `Leider kann ich Ihre Frage nicht beantworten und Ihnen die gewünschten Daten nicht zur Verfügung stellen. ${errorDescription} Bitte formulieren Sie die Frage anders und versuchen Sie es erneut.` : `Unfortunately, I can’t answer your question and provide you the data you asked for. ${errorDescription} Please rephrase the question and try again.`
+        errorDescription = locale==='de' ? `Leider kann ich Ihre Frage nicht beantworten und Ihnen die gewünschten Daten nicht zur Verfügung stellen. ${errorDescription} Bitte formulieren Sie die Frage anders und versuchen Sie es erneut.` : `Unfortunately, I cannot answer your question and cannot provide you with the requested data. ${errorDescription} Please rephrase the question and try again.`
         return errorDescription.trim()
     } catch (error) {
         console.log(error);
-         errorDescription = locale=='de' ? `Leider kann ich Ihre Frage nicht beantworten und Ihnen die gewünschten Daten nicht zur Verfügung stellen. Bitte formulieren Sie die Frage anders und versuchen Sie es erneut.` : `Unfortunately, I can’t answer your question and provide you the data you asked for. Please rephrase the question and try again.`
+         errorDescription = locale=='de' ? `Leider kann ich Ihre Frage nicht beantworten und Ihnen die gewünschten Daten nicht zur Verfügung stellen. Bitte formulieren Sie die Frage anders und versuchen Sie es erneut.` : `Unfortunately, I cannot answer your question and cannot provide you with the requested data. Please rephrase the question and try again.`
         return errorDescription
     }
 
