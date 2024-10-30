@@ -124,8 +124,9 @@ ${metadataDescriptions}
 
 router.post('/', async (req, res) => {
     let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
+    const { query, locale } = req.body;  // Extract query and locale from the request body
     try {
-        const { query, locale } = req.body;  // Extract query and locale from the request body
+        // const { query, locale } = req.body;  // Extract query and locale from the request body
         const databaseName = req.databaseName
 
         if (!databaseName) {
@@ -159,7 +160,7 @@ router.post('/', async (req, res) => {
         if (!result) {
             return res.status(400).json({
                 queryResult: false,
-                query: 'Failed to get result from AI.'
+                query: locale=='de'? "Failed to get result from AI. german text" :'Failed to get result from AI.'
             });
         }
 
@@ -167,7 +168,7 @@ router.post('/', async (req, res) => {
         if (!sqlQuery) {
             return res.status(400).json({
                 queryResult: false,
-                query: 'Failed to extract SQL query.'
+                query: locale=='de'? "Failed to extract sql query german text" : 'Failed to extract SQL query.'
             });
         }
 
@@ -177,12 +178,53 @@ router.post('/', async (req, res) => {
         // Return the query result
         if (rows.length > 0)
             return res.status(200).json({ queryResult: rows, query: sqlQuery });
-        return res.status(200).json({ queryResult: false, query: "Please rephrase the question and try again" });
+        return res.status(200).json({ queryResult: false, query: locale=='de'? " Please rephrase the question and try again german text" : "Please rephrase the question and try again" });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ queryResult: false, query: error.sqlMessage });
+        const errorDescription = await errorMessage(locale,error.sqlMessage,req)
+        return res.status(500).json({ queryResult: false, query: errorDescription });
     }
 });
+
+
+
+const errorMessage = async (locale, error,req) => {
+    let systemMessageContent;
+    let userMessageContent;
+    let model = req.headers['x-model']? req.headers['x-model'] : 'Gpts';
+    if (locale === 'de') {
+        systemMessageContent = `${error}`;
+        userMessageContent = `Sie sind ein hilfreicher KI-Assistent, der mir in nur einem Satz eine einfache Beschreibung der Sql-Fehlermeldung liefert, die ich von meiner Datenbank erhalte, wenn ich eine Abfrage ausführe.`;
+    } else {
+        systemMessageContent = `${error}`;
+        userMessageContent = `You are a helpful AI assistant which will provide me a only one sentence simple description of the sql error message which I get from my database when I execute query.`;
+    }
+
+    const systemMessage = {
+        role: "system",
+        content: systemMessageContent.trim()
+    };
+
+    const userMessage = {
+        role: "user",
+        content: userMessageContent.trim()
+    };
+
+    const messages = [systemMessage, userMessage];
+    let errorDescription;
+
+    try {
+        errorDescription = await getResult(messages,model);
+        console.log(errorDescription)
+        errorDescription = locale==='de' ? `Leider kann ich Ihre Frage nicht beantworten und Ihnen die gewünschten Daten nicht zur Verfügung stellen. ${errorDescription} Bitte formulieren Sie die Frage anders und versuchen Sie es erneut.` : `Unfortunately, I can’t answer your question and provide you the data you asked for. ${errorDescription} Please rephrase the question and try again.`
+        return errorDescription.trim()
+    } catch (error) {
+        console.log(error);
+         errorDescription = locale=='de' ? `Leider kann ich Ihre Frage nicht beantworten und Ihnen die gewünschten Daten nicht zur Verfügung stellen. Bitte formulieren Sie die Frage anders und versuchen Sie es erneut.` : `Unfortunately, I can’t answer your question and provide you the data you asked for. Please rephrase the question and try again.`
+        return errorDescription
+    }
+
+}
 
 router.post('/provide-desc', async (req, res) => {
     let locale = req.body.locale;
