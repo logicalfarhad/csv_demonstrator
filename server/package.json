@@ -22,7 +22,7 @@
     "langchain": "0.0.102",
     "mongoose": "^7.4.2",
     "morgan": "^1.10.0",
-    "mysql2": "^3.3.1",
+    "mysql2": "^3.11.3",
     "node-fetch": "^2.7.0",
     "nodemon": "^3.0.1",
     "openai": "^4.24.7"
