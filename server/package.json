@@ -20,7 +20,7 @@
     "express-fileupload": "^1.4.0",
     "jsonwebtoken": "^9.0.1",
     "langchain": "0.0.102",
-    "mongoose": "^7.4.2",
+    "mongoose": "^8.8.3",
     "morgan": "^1.10.0",
     "mysql2": "^3.3.1",
     "node-fetch": "^2.7.0",
